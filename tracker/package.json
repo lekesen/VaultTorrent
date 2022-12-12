@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "bittorrent-tracker": "^9.19.0"
+  }
+}
