@@ -1,6 +1,6 @@
 'use strict';
 
 // Import necessary modules
-const tracker = require('./src/tracker');
+const tracker = require('./src/trackerServer');
 
 tracker.startServer();

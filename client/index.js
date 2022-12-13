@@ -1,5 +1,4 @@
 'use strict';
 
-const tracker = require('./src/tracker');
+const tracker = require('./src/trackerClient/trackerClient');
 
-tracker.getPeers();
