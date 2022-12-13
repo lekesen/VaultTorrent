@@ -21,7 +21,7 @@ The messages are sent using BEP format.
 */
 
 
-// THINK ON HOW TO IMPLEMENT SEEDING
+// Get peers from tracker
 module.exports.getPeers = (trackerUrl, torrent, cb) => {
     self.getTrackerInfo(trackerUrl, torrent, (trackerInfo) => {
         if (!trackerInfo) {
@@ -32,12 +32,10 @@ module.exports.getPeers = (trackerUrl, torrent, cb) => {
     });
 };
 
+// Notify tracker we are seeding
 module.exports.startSeeding = (trackerUrl, torrent, cb) => {
     self.getTrackerInfo(trackerUrl, torrent, seeding = true, (trackerInfo) => {
-        function sendAnnounceReqSeeding() {
-            self.getTrackerInfo(trackerUrl, torrent, seeding = true, ()=>{});
-        }
-        cb(torrent)
+        cb(trackerInfo);
     });
 }
 

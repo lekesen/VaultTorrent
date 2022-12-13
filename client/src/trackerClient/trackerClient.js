@@ -10,7 +10,49 @@ const httpTracker = require('./httpTracker');
     For the moment, only UDP has been implemented.
 */
 
+var programmedAnnounceReqs = {};
+
 module.exports.getPeers = (torrent, cb) => {
+    // Get trackers from torrent
+    const trackerArray = getTrackersFromTorrent(torrent);
+
+    if (!trackerArray) {
+        // No trackers
+        cb([]);
+        return;
+    }
+
+    // Get peers from each tracker
+    trackerArray.forEach(tracker => getPeersFromTracker(tracker, torrent, cb));
+};
+
+module.exports.startSeeding = (trackerUrl, torrent) => {
+    // Get trackers from torrent
+    const trackerArray = getTrackersFromTorrent(torrent);
+
+    if (!trackerArray) {
+        // No trackers
+        return;
+    }
+
+    // Start periodic announce requests
+    trackerArray.forEach(tracker => startSeedingToTracker(tracker, torrent));
+};
+
+module.exports.stopSeeding = (trackerUrl, torrent) => {
+    // Get trackers from torrent
+    const trackerArray = getTrackersFromTorrent(torrent);
+
+    if (!trackerArray) {
+        // No trackers
+        return;
+    }
+
+    // Start periodic announce requests
+    trackerArray.forEach(tracker => stopSeedingToTracker(tracker, torrent));
+}
+
+function getTrackersFromTorrent(torrent) {
     // Retrieve trackers from torrent
     var trackerArray = [];
 
@@ -23,18 +65,16 @@ module.exports.getPeers = (torrent, cb) => {
         trackerArray.push(torrent.announce.toString('utf8'));
     } else {
         // No tracker
-        cb(null);
-        return;
+        return null;
     }
 
-    // Get peers from each tracker
-    trackerArray.forEach(tracker => getPeersFromTracker(tracker, torrent, cb));
-};
+    return trackerArray;
+}
 
 function getPeersFromTracker(trackerUrl, torrent, cb) {
     if (trackerUrl.startsWith('udp://')) {
         // UDP tracker
-        udpTracker.getPeers(trackeUrl, torrent, cb);
+        udpTracker.getPeers(trackerUrl, torrent, cb);
     } else if (trackerUrl.startsWith('http://')) {
         // HTTP tracker
         console.log('HTTP protocol unsupported');
@@ -44,5 +84,39 @@ function getPeersFromTracker(trackerUrl, torrent, cb) {
         // WS or WSS tracker
         console.log('Unsupported protocol');
         cb([]);
+    }
+}
+
+function notifySeeding(trackerUrl, torrent) {
+    if (trackerUrl.startsWith('udp://')) {
+        // UDP tracker
+        const notifyCb = (trackerInfo) => {
+            function scheduledFunction() {
+                startSee
+            }
+        };
+        
+        udpTracker.notifySeeding(trackerUrl, torrent, notifyCb);
+    } else if (trackerUrl.startsWith('http://')) {
+        // HTTP tracker
+        console.log('HTTP protocol unsupported');
+        // httpTracker.startSeeding(trackerUrl, torrent, cb);
+    } else {
+        // WS or WSS tracker
+        console.log('Unsupported protocol');
+    }
+}
+
+function notifyNoSeeding(trackerUrl, torrent) {
+    if (trackerUrl.startsWith('udp://')) {
+        // UDP tracker
+        udpTracker.startSeeding(trackeUrl, torrent, cb);
+    } else if (trackerUrl.startsWith('http://')) {
+        // HTTP tracker
+        console.log('HTTP protocol unsupported');
+        // httpTracker.startSeeding(trackerUrl, torrent, cb);
+    } else {
+        // WS or WSS tracker
+        console.log('Unsupported protocol');
     }
 }
