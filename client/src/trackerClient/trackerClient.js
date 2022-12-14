@@ -10,7 +10,7 @@ const httpTracker = require('./httpTracker');
     For the moment, only UDP has been implemented.
 */
 
-var programmedAnnounceReqs = {};
+var programmedNotifySeed = {};
 
 module.exports.getPeers = (torrent, cb) => {
     // Get trackers from torrent
@@ -18,7 +18,6 @@ module.exports.getPeers = (torrent, cb) => {
 
     if (!trackerArray) {
         // No trackers
-        cb([]);
         return;
     }
 
@@ -36,7 +35,7 @@ module.exports.startSeeding = (trackerUrl, torrent) => {
     }
 
     // Start periodic announce requests
-    trackerArray.forEach(tracker => startSeedingToTracker(tracker, torrent));
+    trackerArray.forEach(tracker => notifySeeding(tracker, torrent));
 };
 
 module.exports.stopSeeding = (trackerUrl, torrent) => {
@@ -49,7 +48,7 @@ module.exports.stopSeeding = (trackerUrl, torrent) => {
     }
 
     // Start periodic announce requests
-    trackerArray.forEach(tracker => stopSeedingToTracker(tracker, torrent));
+    trackerArray.forEach(tracker => notifyNoSeeding(tracker, torrent));
 }
 
 function getTrackersFromTorrent(torrent) {
@@ -77,13 +76,11 @@ function getPeersFromTracker(trackerUrl, torrent, cb) {
         udpTracker.getPeers(trackerUrl, torrent, cb);
     } else if (trackerUrl.startsWith('http://')) {
         // HTTP tracker
-        console.log('HTTP protocol unsupported');
-        cb([]);
+        console.log('%s: HTTP protocol unsupported.', trackerUrl);
         // httpTracker.getPeers(trackerUrl, torrent, cb);
     } else {
         // WS or WSS tracker
-        console.log('Unsupported protocol');
-        cb([]);
+        console.log('%s: Unsupported protocol.', trackerUrl);
     }
 }
 
@@ -91,32 +88,44 @@ function notifySeeding(trackerUrl, torrent) {
     if (trackerUrl.startsWith('udp://')) {
         // UDP tracker
         const notifyCb = (trackerInfo) => {
-            function scheduledFunction() {
-                startSee
+            programmedNotifySeed.delete(trackerUrl);
+
+            function scheduledNotify() {
+                notifySeeding(trackerUrl, torrent);
             }
+            const timeoutObj = setTimeout(scheduledNotify, trackerInfo.interval);
+
+            programmedNotifySeed.push({trackerUrl: timeoutObj});
         };
         
         udpTracker.notifySeeding(trackerUrl, torrent, notifyCb);
+
     } else if (trackerUrl.startsWith('http://')) {
         // HTTP tracker
-        console.log('HTTP protocol unsupported');
+        console.log('%s: HTTP protocol unsupported.', trackerUrl);
         // httpTracker.startSeeding(trackerUrl, torrent, cb);
     } else {
         // WS or WSS tracker
-        console.log('Unsupported protocol');
+        console.log('%s: Unsupported protocol.', trackerUrl);
     }
 }
 
 function notifyNoSeeding(trackerUrl, torrent) {
     if (trackerUrl.startsWith('udp://')) {
         // UDP tracker
-        udpTracker.startSeeding(trackeUrl, torrent, cb);
+        // Stop scheduled tasks
+
+        for (const [key, value] of Object.entries(programmedNotifySeed)) {
+            clearTimeout(programmedNotify[key]);
+            programmedNotifySeed.delete(key);
+        }
+
     } else if (trackerUrl.startsWith('http://')) {
         // HTTP tracker
-        console.log('HTTP protocol unsupported');
+        console.log('%s: HTTP protocol unsupported.', trackerUrl);
         // httpTracker.startSeeding(trackerUrl, torrent, cb);
     } else {
         // WS or WSS tracker
-        console.log('Unsupported protocol');
+        console.log('%s: Unsupported protocol.', trackerUrl);
     }
 }

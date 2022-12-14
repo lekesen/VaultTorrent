@@ -8,7 +8,6 @@ const crypto = require('crypto'); // To generate random numbers
 
 const tp = require('../util/torrentParser');
 const util = require('../util/util');
-const { callbackify } = require('util');
 
 /*
 UDP Tracker protocol:
@@ -23,23 +22,21 @@ The messages are sent using BEP format.
 
 // Get peers from tracker
 module.exports.getPeers = (trackerUrl, torrent, cb) => {
-    self.getTrackerInfo(trackerUrl, torrent, (trackerInfo) => {
-        if (!trackerInfo) {
+    getTrackerInfo(trackerUrl, torrent, false, (trackerInfo) => {
+        if (trackerInfo) {
             cb(trackerInfo.peers);
-        } else {
-            cb([]);
         }
     });
 };
 
 // Notify tracker we are seeding
-module.exports.startSeeding = (trackerUrl, torrent, cb) => {
-    self.getTrackerInfo(trackerUrl, torrent, seeding = true, (trackerInfo) => {
+module.exports.notifySeeding = (trackerUrl, torrent, cb) => {
+    getTrackerInfo(trackerUrl, torrent, true, (trackerInfo) => {
         cb(trackerInfo);
     });
-}
+};
 
-function getTrackerInfo(trackerUrl, torrent, seeding = false, cb) {
+function getTrackerInfo(trackerUrl, torrent, seeding, cb) {
     // Create UDP socket
     const socket = dgram.createSocket('udp4');
 
@@ -47,11 +44,8 @@ function getTrackerInfo(trackerUrl, torrent, seeding = false, cb) {
     const udpCb = (err) => {
         if (err) {
             console.log(err);
+            socket.close();
         }
-
-        // Close socket and return empty array
-        socket.close();
-        cb(null);
     };
 
     // 1. Send Connection Request
@@ -72,7 +66,6 @@ function getTrackerInfo(trackerUrl, torrent, seeding = false, cb) {
             // Check for error
             if (!connResp) {
                 socket.close();
-                cb(null);
                 return;
             }
 
@@ -95,7 +88,6 @@ function getTrackerInfo(trackerUrl, torrent, seeding = false, cb) {
             // Check for error
             if (!announceResp) {
                 socket.close();
-                cb(null);
                 return;
             }
 
@@ -112,7 +104,6 @@ function getTrackerInfo(trackerUrl, torrent, seeding = false, cb) {
 // Send message through UDP socket
 function udpSend(socket, message, rawUrl, cb = () => {}) {
     // TODO: implement retrial after timeout
-    
     const url = urlParse(rawUrl);
 
     socket.send(message, 0, message.length, url.port, url.hostname, cb);
@@ -213,7 +204,7 @@ function buildAnnounceReq(connId, torrent, port=6881, seeding=false) {
     crypto.randomBytes(4).copy(buf, 12);
     
     // Info Hash
-    torrentParser.infoHash(torrent).copy(buf, 16);
+    tp.infoHash(torrent).copy(buf, 16);
     
     // Peer ID
     util.genId().copy(buf, 36);
@@ -224,11 +215,11 @@ function buildAnnounceReq(connId, torrent, port=6881, seeding=false) {
         Buffer.alloc(8).copy(buf, 56);
     
         // Left
-        torrentParser.size(torrent).copy(buf, 64);
+        tp.size(torrent).copy(buf, 64);
     } else {
         // For seeding
         // Downloaded
-        torrentParser.size(torrent).copy(buf, 56);
+        tp.size(torrent).copy(buf, 56);
 
         // Left
         Buffer.alloc(8).copy(buf, 64);
