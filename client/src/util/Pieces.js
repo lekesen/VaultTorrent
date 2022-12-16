@@ -7,8 +7,8 @@ const tp = require('./torrentParser');
 module.exports = class {
     constructor(torrent) {
         function buildPiecesArray() {
+            // torrent.info.pieces gives a 20-bit-sha for each piece
             const nPieces = torrent.info.pieces.length / 20;
-
             // Array of arrays --> pieces and blocks
             const arr = new Array(nPieces).fill(null);
 

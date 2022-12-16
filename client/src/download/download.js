@@ -5,6 +5,7 @@ const fs = require('fs');
 const net = require('net');
 const tracker = require('../trackerClient/trackerClient');
 const message = require('../util/message');
+const consts = require('../util/constants');
 
 // Load necessary classes
 const Pieces = require('../util/Pieces');
@@ -21,7 +22,10 @@ module.exports = (torrent, download_path) => {
     const pieces = new Pieces(torrent);
 
     // Get peer list and start download
-    tracker.getPeers(torrent, peers => {peers.forEach(peer => download(peer, torrent, pieces, file))});
+    tracker.getPeers(torrent, peers => {
+		console.log(peers);
+		peers.forEach(peer => { download(peer, torrent, pieces, file); });
+	});
 };
 
 /*
@@ -37,11 +41,11 @@ function download(peer, torrent, pieces, file) {
     // Create TCP socket
     const socket = new net.Socket();
 
-    socket.on('error', console.log);
+    socket.on('error', (err) => console.log(err));
 
     // Establish TCP connection and send handshake
     socket.connect(peer.port, peer.ip, () => {
-        socket.write(message.buildHandshake(torrent));
+		socket.write(message.buildHandshake(torrent));
     });
 
     // Set up socket listener
@@ -151,16 +155,30 @@ function pieceHandler(socket, pieces, queue, torrent, file, pieceResp) {
 
 	// Write to download file
 	const offset = pieceResp.index * torrent.info['piece length'] + pieceResp.begin;
-	fs.writeSync(file, pieceResp.block, 0, pieceResp.block.length, offset, () => {});
+	
+	if (!pieces.isDone()) {
+		fs.writeSync(file, pieceResp.block, 0, pieceResp.block.length, offset, (err) => {
+			if (err) {
+				console.log(err);
+			}
+		});
 
-	if (pieces.isDone()) {
-		// If download has finished, close the socket and file
-    	socket.end();
-    	try { console.log('Hello!!'); fs.closeSync(file); console.log('Closed file'); } catch(e) {console.log(e);}
-    } else {
-    	// If more pieces to be downloaded, request more
-    	requestPiece(socket,pieces, queue);
-    }
+		if (pieces.isDone()) {
+			// If download has finished, close the socket and file
+			socket.end();
+			try { fs.closeSync(file); } catch(e) {console.log(e);}
+		} else {
+			// If more pieces to be downloaded, request more
+			requestPiece(socket,pieces, queue);
+		}
+
+	} else {
+		// Close other sockets
+		socket.end();
+	}
+
+
+	
 }
 
 

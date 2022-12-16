@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "bencode": "2.0"
+    "bencode": "2.0",
+    "create-torrent": "^5.0.0"
   }
 }
