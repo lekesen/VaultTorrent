@@ -74,7 +74,7 @@ function getTrackerInfo(trackerUrl, torrent, seeding, cb) {
 
 
             // 3. Send announce request
-            const announceReq = buildAnnounceReq(connResp.connectionId, torrent, seeding = seeding);
+            const announceReq = buildAnnounceReq(connResp.connectionId, torrent, seeding);
 
             originalTransactionId = announceReq.readUInt32BE(12);
 
@@ -174,7 +174,7 @@ function parseConnResp(resp, originalTransactionId) {
 
 
 // Build Announce Request message
-function buildAnnounceReq(connId, torrent, port=consts.PORT, seeding=false) {
+function buildAnnounceReq(connId, torrent, seeding, port=consts.PORT) {
 /*
     Offset  Size    Name    Value
     0       64-bit integer  connection_id
@@ -216,6 +216,13 @@ function buildAnnounceReq(connId, torrent, port=consts.PORT, seeding=false) {
     
         // Left
         tp.size(torrent).copy(buf, 64);
+
+        // Uploaded
+        // TODO: implement correctly
+        Buffer.alloc(8).copy(buf, 72);
+
+        // Event
+        buf.writeUInt32BE(1, 80);
     } else {
         // For seeding
         // Downloaded
@@ -223,14 +230,15 @@ function buildAnnounceReq(connId, torrent, port=consts.PORT, seeding=false) {
 
         // Left
         Buffer.alloc(8).copy(buf, 64);
+
+        // Uploaded
+        // TODO: implement correctly
+        Buffer.alloc(8).copy(buf, 72);
+
+        // Event
+        buf.writeUInt32BE(2, 80);
     }
     
-    // Uploaded
-    // TODO: implement correctly
-    Buffer.alloc(8).copy(buf, 72);
-    
-    // Event
-    buf.writeUInt32BE(0, 80);
     
     // IP Address
     // TODO: Check

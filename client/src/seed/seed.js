@@ -22,13 +22,16 @@ module.exports.startSeeding = (torrent, filePath) => {
 		console.log("TCP BitTorrent server listerning at port 6881.");
 	});
 
-	server.on('error', console.log);
+	server.on('error', (err) => console.log(err));
 	server.on('connection', socket => {
 		console.log('CONNECTED: ' + socket.remoteAddress + ':' + socket.remotePort);
         clients.push(socket);
-		onWholeMsg(socket, msg => msgHandler(msg, socket, torrent, file_path));
+		onWholeMsg(socket, msg => msgHandler(msg, socket, torrent, filePath));
+		socket.on('error', (err) => console.log(err));
         socket.on('close', () => {
-            clients.splice(clients.indexOf(socket), 1);
+			console.log('closed');
+			// TODO
+            //clients.splice(clients.indexOf(socket), 1);
         });
 	});
 };
@@ -71,7 +74,7 @@ function onWholeMsg(socket, callback) {
 }
 
 // Message handler functions
-function msgHandler(msg, socket, torrent, file_path) {
+function msgHandler(msg, socket, torrent, filePath) {
 	if (isHandshake(msg)) {
 		// If it is hanshake, show we are interested
 		socket.write(message.buildHandshake(torrent));
@@ -81,7 +84,7 @@ function msgHandler(msg, socket, torrent, file_path) {
 
 		if (m.id === 2) interestedHandler(socket, torrent);
 		if (m.id === 3) uninterestedHandler(socket);
-		if (m.id === 6) pieceRequestHandler(socket, torrent, file_path, m.payload);
+		if (m.id === 6) pieceRequestHandler(socket, torrent, filePath, m.payload);
 	}
 }
 
@@ -107,14 +110,14 @@ function uninterestedHandler() {
 	// Not strictly necessary to do anything (?)
 }
 
-function pieceRequestHandler(socket, torrent, file_path, pieceRequest) {
+function pieceRequestHandler(socket, torrent, filePath, pieceRequest) {
 	// See which piece it requests
 	const pieceIndex = pieceRequest.index;
 	const blockBegin = pieceRequest.begin;
 	const blockLength = pieceRequest.length.readInt32BE(0);
 
     // Read data and send through socket
-	fs.open(file_path, 'r', function(error, fd) {
+	fs.open(filePath, 'r', function(error, fd) {
 		if (error) {
 			console.log(error);
 			return;
