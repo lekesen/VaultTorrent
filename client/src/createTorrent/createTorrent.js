@@ -7,9 +7,16 @@ const path = require('node:path');
 
 // Create Torrent from file
 module.exports.createTorrent = (filePath) => {
-    createTorrent(filePath, (err, torrent) => {
+    const opts = {
+        announceList: ['udp://10.0.2.8:8080']
+    };
+    createTorrent(filePath, opts, (err, torrent) => {
         if (!err) {
-            fs.writeFile('./torrents/'+path.posix.basename(filePath)+'.json');
+            fs.writeFile('./files/torrents/'+path.posix.basename(filePath)+'.torrent', torrent, (err) => {
+                if(err) {
+                    console.log(err);
+                }
+            });
         }
     });
 };

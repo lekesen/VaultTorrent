@@ -88,14 +88,14 @@ function notifySeeding(trackerUrl, torrent) {
     if (trackerUrl.startsWith('udp://')) {
         // UDP tracker
         const notifyCb = (trackerInfo) => {
-            programmedNotifySeed.delete(trackerUrl);
+            delete programmedNotifySeed[trackerUrl];
 
             function scheduledNotify() {
                 notifySeeding(trackerUrl, torrent);
             }
             const timeoutObj = setTimeout(scheduledNotify, trackerInfo.interval);
 
-            programmedNotifySeed.push({trackerUrl: timeoutObj});
+            programmedNotifySeed[trackerUrl] =  timeoutObj;
         };
         
         udpTracker.notifySeeding(trackerUrl, torrent, notifyCb);
@@ -117,7 +117,7 @@ function notifyNoSeeding(trackerUrl, torrent) {
 
         for (const [key, value] of Object.entries(programmedNotifySeed)) {
             clearTimeout(programmedNotify[key]);
-            programmedNotifySeed.delete(key);
+            delete programmedNotifySeed[key];
         }
 
     } else if (trackerUrl.startsWith('http://')) {
