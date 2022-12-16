@@ -23,15 +23,16 @@ module.exports.startServer = () => {
         
             // This example only allows one torrent.
         
-            const allowed = (infoHash === 'aaa67059ed6bd08362da625b3ae77f6f4a075aaa')
-            if (allowed) {
+            //const allowed = (infoHash === 'aaa67059ed6bd08362da625b3ae77f6f4a075aaa')
+            //if (allowed) {
               // If the callback is passed `null`, the torrent will be allowed.
-              cb(null)
-            } else {
+              //cb(null)
+            //} else {
               // If the callback is passed an `Error` object, the torrent will be disallowed
               // and the error's `message` property will be given as the reason.
-              cb(new Error('disallowed torrent'))
-            }
+              //cb(new Error('disallowed torrent'))
+            //}
+            cb(null);
           }
     });
 

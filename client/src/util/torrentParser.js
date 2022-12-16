@@ -11,7 +11,7 @@ module.exports.BLOCK_LEN = Math.pow(2, 14);
 
 // Parse torrent file and return as JSON
 module.exports.open = (filepath) => {
-    return bencode.decode(fs.readFileSync(filepath));
+  return bencode.decode(fs.readFileSync(filepath));
 };
 
 // Hash (SHA-1) info section of torrent file to create 'Info Hash'
@@ -40,21 +40,21 @@ module.exports.pieceLen = (torrent, pieceIndex) => {
     const lastPieceLength = parseInt(totalLength % BigInt(pieceLength));
     const lastPieceIndex = Math.floor(parseInt(totalLength / BigInt(pieceLength)));
   
-    return lastPieceIndex === pieceIndex ? lastPieceLength : pieceLength;
-  };
+	return lastPieceIndex === pieceIndex ? lastPieceLength : pieceLength;
+};
   
-  // Return number of blocks for a specific piece
-  module.exports.blocksPerPiece = (torrent, pieceIndex) => {
-    const pieceLength = this.pieceLen(torrent, pieceIndex);
-    return Math.ceil(pieceLength / this.BLOCK_LEN);
-  };
+// Return number of blocks for a specific piece
+module.exports.blocksPerPiece = (torrent, pieceIndex) => {
+	const pieceLength = this.pieceLen(torrent, pieceIndex);
+	return Math.ceil(pieceLength / this.BLOCK_LEN);
+};
   
-  // Return block length
-  module.exports.blockLen = (torrent, pieceIndex, blockIndex) => {
-    const pieceLength = this.pieceLen(torrent, pieceIndex);
-  
-    const lastPieceLength = pieceLength % this.BLOCK_LEN;
-    const lastPieceIndex = Math.floor(pieceLength / this.BLOCK_LEN);
-  
-    return blockIndex === lastPieceIndex ? lastPieceLength : this.BLOCK_LEN;
-  };
+// Return block length
+module.exports.blockLen = (torrent, pieceIndex, blockIndex) => {
+	const pieceLength = this.pieceLen(torrent, pieceIndex);
+	
+	const lastPieceLength = pieceLength % this.BLOCK_LEN;
+	const lastPieceIndex = Math.floor(pieceLength / this.BLOCK_LEN);
+	
+	return blockIndex === lastPieceIndex ? lastPieceLength : this.BLOCK_LEN;
+};

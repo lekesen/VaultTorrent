@@ -104,8 +104,8 @@ dist
 .tern-port
 
 # Torrent files
-.torrent
-files/torrents/*
+*.torrent
+torrents/
 
 # Files inside downloads
-files/downloads/*
+downloads/

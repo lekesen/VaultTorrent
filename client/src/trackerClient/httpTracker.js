@@ -8,7 +8,7 @@ const bencode = require('bencode');
 
 const tp = require('../util/torrentParser');
 const util = require('../util/util');
-
+const consts = require('../util/constants');
 /*
 HTTP Tracker protocol:
 	1) Send announce request w/ HTTP.
@@ -37,7 +37,7 @@ function getTrackerInfo(trackerUrl, torrent, seeding = false, cb) {
     const parameters = {
 		info_hash: escape(torrentParser.infoHash(torrent).toString('binary')),
 		peer_id: escape(util.genId().toString('binary')),
-		port: 6881, // TODO: define in constant file
+		port: consts.PORT,
 		uploaded: 0,
 		downloaded: seeding,
 		left: BigInt('0x' + torrentParser.size(torrent).toString('hex')),

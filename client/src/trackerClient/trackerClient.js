@@ -25,7 +25,7 @@ module.exports.getPeers = (torrent, cb) => {
     trackerArray.forEach(tracker => getPeersFromTracker(tracker, torrent, cb));
 };
 
-module.exports.startSeeding = (trackerUrl, torrent) => {
+module.exports.startSeeding = (torrent) => {
     // Get trackers from torrent
     const trackerArray = getTrackersFromTorrent(torrent);
 
@@ -38,7 +38,7 @@ module.exports.startSeeding = (trackerUrl, torrent) => {
     trackerArray.forEach(tracker => notifySeeding(tracker, torrent));
 };
 
-module.exports.stopSeeding = (trackerUrl, torrent) => {
+module.exports.stopSeeding = (torrent) => {
     // Get trackers from torrent
     const trackerArray = getTrackersFromTorrent(torrent);
 
@@ -49,7 +49,7 @@ module.exports.stopSeeding = (trackerUrl, torrent) => {
 
     // Start periodic announce requests
     trackerArray.forEach(tracker => notifyNoSeeding(tracker, torrent));
-}
+};
 
 function getTrackersFromTorrent(torrent) {
     // Retrieve trackers from torrent

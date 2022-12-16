@@ -3,7 +3,7 @@
 // Load necessary modules
 const Buffer = require('buffer').Buffer;
 
-const tp = require('./torrent-parser');
+const tp = require('./torrentParser');
 const util = require('./util');
 
 /* 
@@ -134,79 +134,110 @@ module.exports.buildBitfield = bitfield => {
     return buf;
 };
 
+
+// Request message
 module.exports.buildRequest = payload => {
-    const buf = Buffer.alloc(17);
-    // length
+	const buf = Buffer.alloc(17);
+    
+	// length
     buf.writeUInt32BE(13, 0);
-    // id
+    
+	// id
     buf.writeUInt8(6, 4);
-    // piece index
+    
+	// piece index
     buf.writeUInt32BE(payload.index, 5);
-    // begin
+    
+	// begin
     buf.writeUInt32BE(payload.begin, 9);
-    // length
+    
+	// length
     buf.writeUInt32BE(payload.length, 13);
-    return buf;
-  };
-  
-  module.exports.buildPiece = payload => {
-    const buf = Buffer.alloc(payload.block.length + 13);
-    // length
+    
+	return buf;
+};
+
+// Piece message
+module.exports.buildPiece = payload => {
+	const buf = Buffer.alloc(payload.block.length + 13);
+    
+	// length
     buf.writeUInt32BE(payload.block.length + 9, 0);
-    // id
+    
+	// id
     buf.writeUInt8(7, 4);
-    // piece index
+    
+	// piece index
     buf.writeUInt32BE(payload.index, 5);
-    // begin
+    
+	// begin
     buf.writeUInt32BE(payload.begin, 9);
-    // block
+    
+	// block
     payload.block.copy(buf, 13);
-    return buf;
-  };
-  
-  module.exports.buildCancel = payload => {
-    const buf = Buffer.alloc(17);
-    // length
+    
+	return buf;
+};
+
+// Cancel message
+module.exports.buildCancel = payload => {
+	const buf = Buffer.alloc(17);
+    
+	// length
     buf.writeUInt32BE(13, 0);
-    // id
+    
+	// id
     buf.writeUInt8(8, 4);
-    // piece index
+    
+	// piece index
     buf.writeUInt32BE(payload.index, 5);
-    // begin
+    
+	// begin
     buf.writeUInt32BE(payload.begin, 9);
-    // length
+    
+	// length
     buf.writeUInt32BE(payload.length, 13);
-    return buf;
-  };
-  
-  module.exports.buildPort = payload => {
-    const buf = Buffer.alloc(7);
-    // length
+    
+	return buf;
+};
+
+// Port message
+module.exports.buildPort = payload => {
+	const buf = Buffer.alloc(7);
+    
+	// length
     buf.writeUInt32BE(3, 0);
-    // id
+    
+	// id
     buf.writeUInt8(9, 4);
-    // listen-port
+    
+	// listen-port
     buf.writeUInt16BE(payload, 5);
-    return buf;
-  };
+    
+	return buf;
+};
   
-  module.exports.parse = msg => {
-      // Check if it is a keep-ahead message (has no id)
-    const id = msg.length > 4 ? msg.readInt8(4) : null;
-    // If length lesser than 5, it has not payload
+// Parse incomming message
+module.exports.parse = msg => {
+	// Check if it is a keep-ahead message (has no id)
+	const id = msg.length > 4 ? msg.readInt8(4) : null;
+    
+	// If length lesser than 5, it has no payload
     let payload = msg.length > 5 ? msg.slice(5) : null;
-    if (id === 6 || id === 7 || id === 8) {
-      const rest = payload.slice(8);
-      payload = {
-        index: payload.readUInt32BE(0),
-        begin: payload.readUInt32BE(4)
-      };
-      payload[id === 7 ? 'block' : 'length'] = rest;
+    
+	if (id === 6 || id === 7 || id === 8) {
+		const rest = payload.slice(8);
+		
+		payload = {
+			index: payload.readUInt32BE(0),
+			begin: payload.readUInt32BE(4)
+		};
+		payload[id === 7 ? 'block' : 'length'] = rest;
     }
-  
-    return {
-      size : msg.readInt32BE(0),
-      id : id,
-      payload : payload
-    }
-  };
+	
+	return {
+		size : msg.readInt32BE(0),
+		id : id,
+		payload : payload
+	}
+};

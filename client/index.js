@@ -1,9 +1,12 @@
 'use strict';
 
 const tracker = require('./src/trackerClient/trackerClient');
+const download = require('./src/download/download');
 const tp = require('./src/util/torrentParser');
 
-const file_name = './files/torrents/big-buck-bunny.torrent';
+const file_name = './files/torrents/HTTPTracker.torrent';
 const torrent = tp.open(file_name);
+const download_path = './files/downloads/'+'big_buck_bunny.mp4';
 
-tracker.getPeers(torrent, (peer_list) => console.log(peer_list));
+console.log(torrent.info);
+download(torrent, download_path);

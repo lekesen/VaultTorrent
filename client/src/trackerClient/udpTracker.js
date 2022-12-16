@@ -8,6 +8,7 @@ const crypto = require('crypto'); // To generate random numbers
 
 const tp = require('../util/torrentParser');
 const util = require('../util/util');
+const consts = require('../util/constants');
 
 /*
 UDP Tracker protocol:
@@ -173,8 +174,7 @@ function parseConnResp(resp, originalTransactionId) {
 
 
 // Build Announce Request message
-// TODO: Define port in constant file
-function buildAnnounceReq(connId, torrent, port=6881, seeding=false) {
+function buildAnnounceReq(connId, torrent, port=consts.PORT, seeding=false) {
 /*
     Offset  Size    Name    Value
     0       64-bit integer  connection_id
