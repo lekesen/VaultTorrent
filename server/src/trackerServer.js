@@ -52,7 +52,10 @@ module.exports.startServer = () => {
         const udpAddr = server.udp.address();
         const udpHost = udpAddr.address;
         const udpPort = udpAddr.port;
+        console.log(udpHost);
+        console.log(udpPort);
         console.log(`UDP tracker: udp://${udpHost}:${udpPort}`);
+        
 
         /*
 
@@ -74,9 +77,10 @@ module.exports.startServer = () => {
 
     // Start tracker at designated port address
     const port = 8080;
-    const hostname = 'localhost';
+    //const hostname = 'localhost';//'10.0.2.8';
+    const host = '10.0.2.8';
 
-    server.listen(port, hostname, () => {
+    server.listen(port, host, () => {
         // Do something on listening...
     });
     
@@ -89,7 +93,6 @@ module.exports.startServer = () => {
     server.on('complete', function (addr) {});
     server.on('update', function (addr) {});
     server.on('stop', function (addr) {});
-    
     /*
     // get info hashes for all torrents in the tracker server
     Object.keys(server.torrents)
