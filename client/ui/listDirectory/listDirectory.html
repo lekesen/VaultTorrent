@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <link rel="stylesheet" href="../css/style.css">
+    <title>VaultTorrent</title>
+  </head>
+  <body>
+    
+    <div class="topBar"></div>
+        <img src="../images/logo.png">
+        <button id="reloadUiBtn" type="button">Reload UI</button>
+        <button id="uploadBtn" type="button">Upload Vault</button>
+        <button id="downloadBtn" type="button">Download Vault</button>
+        <button id="logOutBtn" type="button">Log Out</button>
+    </div>
+    <br>
+    <p>Vault directory:</p>
+    <div id="list"></div>
+    <script src="./listDirectoryRenderer.js"></script>
+  </body>
+</html>

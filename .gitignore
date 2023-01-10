@@ -103,9 +103,5 @@ dist
 # TernJS port file
 .tern-port
 
-# Torrent files
-*.torrent
-torrents/
-
-# Files inside downloads
-downloads/
+# Don't include files
+files/

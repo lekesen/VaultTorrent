@@ -5,17 +5,20 @@ const createTorrent = require('create-torrent');
 const fs = require('fs');
 const path = require('node:path');
 
+const tp = require('../util/torrentParser');
+
 // Create Torrent from file
-module.exports.createTorrent = (filePath) => {
+module.exports = (filePath, outputPath, cb) => {
     const opts = {
         announceList: ['udp://10.0.2.8:8080']
     };
     createTorrent(filePath, opts, (err, torrent) => {
         if (!err) {
-            fs.writeFile('./files/torrents/'+path.posix.basename(filePath)+'.torrent', torrent, (err) => {
+            fs.writeFile(outputPath, torrent, (err) => {
                 if(err) {
                     console.log(err);
                 }
+                cb();
             });
         }
     });

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <link rel="stylesheet" href="../css/style.css">
+    <title>VaultTorrent</title>
+  </head>
+  <body>
+    <div class="center">
+      <img src="../images/logo.png">
+      <p>Please introduce your information in order to register:</p>
+      <br>
+      Email: <input id="email"/>
+      <br>
+      <br>
+      Password: <input id="password" type="password"/>
+      <br>
+      <br>
+      <button id="registerBtn" type="button">Register</button>
+      <script src="./registerRenderer.js"></script>
+    </div>  
+  </body>
+</html>

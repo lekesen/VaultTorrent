@@ -15,14 +15,15 @@ const Queue = require('../util/Queue');
 
 // Main function
 module.exports = (torrent, download_path) => {
-    // Create files to save downloaded data
-	const file = fs.openSync(download_path + 'download_tmp', 'w');
+    // Create file to save downloaded data
+    const file = fs.openSync(download_path, 'w');
 
     // Create Pieces object, to orchestrate download with different peers
     const pieces = new Pieces(torrent);
 
     // Get peer list and start download
     tracker.getPeers(torrent, peers => {
+		console.log(peers);
 		peers.forEach(peer => { download(peer, torrent, pieces, file); });
 	});
 };
@@ -148,13 +149,14 @@ function bitfieldHandler(socket, pieces, queue, payload) {
 function pieceHandler(socket, pieces, queue, torrent, file, pieceResp) {
 	// Show download progress
     // TODO: implement with UI
-	
+	pieces.printPercentDone();
 
+	pieces.addReceived(pieceResp);
+
+	// Write to download file
+	const offset = pieceResp.index * torrent.info['piece length'] + pieceResp.begin;
+	
 	if (!pieces.isDone()) {
-		pieces.addReceived(pieceResp);
-		pieces.printPercentDone();
-		const offset = pieceResp.index * torrent.info['piece length'] + pieceResp.begin;
-		// Write data to files
 		fs.writeSync(file, pieceResp.block, 0, pieceResp.block.length, offset, (err) => {
 			if (err) {
 				console.log(err);
@@ -164,10 +166,7 @@ function pieceHandler(socket, pieces, queue, torrent, file, pieceResp) {
 		if (pieces.isDone()) {
 			// If download has finished, close the socket and file
 			socket.end();
-			try { 
-				fs.closeSync(file);
-				saveDataToFiles(torrent);
-			} catch(e) {console.log(e);}
+			try { fs.closeSync(file); } catch(e) {console.log(e);}
 		} else {
 			// If more pieces to be downloaded, request more
 			requestPiece(socket,pieces, queue);
@@ -177,93 +176,11 @@ function pieceHandler(socket, pieces, queue, torrent, file, pieceResp) {
 		// Close other sockets
 		socket.end();
 	}
-}
-
-function saveDataToFiles(torrent) {
-	var files = [];
-	var fileLengths = [];
-	if (!torrent.info.files) {
-		// Only 1 file
-		const file = fs.openSync('./files/downloads/' + torent.info.name.toString(), 'w');
-		files.push(file);
-
-		fileLengths.push(torrent.info.pieces.length*torrent.info['piece length']/20);
-	} else {
-		// More than one files
-		for (var i=0; i<torrent.info.files.length; i++) {
-			const file = fs.openSync('./files/downloads/' + torrent.info.files[i].path.toString(), 'w');
-			files.push(file);
-			fileLengths.push(torrent.info.files[i].length);
-		}
-	}
-
-	fs.open('./files/downloads/download_tmp', 'r', function(error, fd) {
-		if (error) {
-			console.log(error);
-			return;
-		}
-		var offset = 0;
-		for (var i=0; i<files.length; i++) {
-			var blockBuf = Buffer.alloc(fileLengths[i]);
-			const file = files[i];
-			const fileLength = fileLengths[i];
-
-			fs.read(fd, blockBuf, 0, fileLength, offset, (err, bytesRead, blockBuf) => {
-				if (err) {
-					console.log(err);
-					return;
-				}
-
-				fs.writeSync(file, blockBuf, 0, blockBuf.length, 0, (err) => {
-					if (err) {
-						console.log(err);
-					}
-				});
-				try { fs.closeSync(file); } catch(e) {console.log(e);}
-			});
-			offset += fileLength;
-		}
-	});
-}
-
-function writeToFile(torrent, files, fileLengths, message) {
-	// Write to download file
-	var messageOffset = message.index * torrent.info['piece length'] + message.begin;
-	var fileOffset = 0;
-	var messageLength = message.block.length;
-	for (var i=0; i<files.length; i++) {
-		if (fileOffset <= messageOffset && (fileOffset + fileLengths[i]) > (messageOffset + messageLength)) {
-			// Write full data
-			fs.writeSync(files[i], message.block, 0, messageLength, messageOffset-fileOffset, (err) => {
-				if (err) {
-					console.log(err);
-				}
-			});
-			return;
-		} else if (fileOffset <= messageOffset && (fileOffset+fileLengths[i]) > messageOffset && (fileOffset + fileLengths[i]) < (messageOffset + messageLength)) {
-			// Write part of data
-			fs.writeSync(files[i], message.block, 0, fileOffset+fileLengths[i]-messageOffset, messageOffset-fileOffset, (err) => {
-				if (err) {
-					console.log(err);
-				}
-			});
-		} else if (fileOffset >= messageOffset && (fileOffset + fileLengths[i]) > (messageOffset + messageLength)) {
-			// Write part of data
-			fs.writeSync(files[i], message.block, fileOffset-messageOffset, messageLength - (fileOffset-messageOffset), 0, (err) => {
-				if (err) {
-					console.log(err);
-				}
-			});
-			return;
-		}
-		fileOffset += fileLengths[i];
-	}
 
 
-	/*
 	
-	*/
 }
+
 
 // Request a piece
 function requestPiece(socket, pieces, queue) {

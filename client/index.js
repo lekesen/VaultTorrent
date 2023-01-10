@@ -1,47 +1,105 @@
 'use strict';
 
+// Load necessary modules
+const {app, BrowserWindow, ipcMain} = require('electron');
+const path = require('path');
+const fs = require('fs');
 
-const tracker = require('./src/trackerClient/trackerClient');
-const download = require('./src/download/download');
-const create = require('./src/createTorrent/createTorrent');
-const seed = require('./src/seed/seed');
-const tp = require('./src/util/torrentParser');
-
-const file_name = './files/torrents/big-buck-bunny.torrent';
-const torrent = tp.open(file_name);
-const download_path = './files/downloads/';
-
-//seed.startSeeding(torrent, download_path);
-
-//create.createTorrent('./files/downloads/tgk.jpg');
-
-download(torrent, download_path);
+const client = require(path.join(__dirname, 'src', 'client'));
 
 
-/*
-const { app, BrowserWindow } = require('electron');
-
-const createWindow = () => {
-  const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+function createWindow () {
+  const mainWindow = new BrowserWindow({
+    webPreferences: {
+      preload: path.join(__dirname, 'ui','preload.js')
+    }
   });
 
-  win.loadFile('./ui/index.html');
-};
+  let loginWindow;
+
+  ipcMain.on('click-login', (event, email, password) => {
+    mainWindow.loadFile(path.join(__dirname, 'ui', 'loader', 'loader.html'));
+    client.login(email, password, () => {
+      mainWindow.loadFile(path.join(__dirname, 'ui', 'listDirectory', 'listDirectory.html'));
+    });
+  });
+
+  ipcMain.on('click-register', (event) => {
+    mainWindow.loadFile(path.join(__dirname, 'ui', 'register', 'register.html'));
+  });
+
+  ipcMain.on('submit-register', (event, email, password) => {
+    mainWindow.loadFile(path.join(__dirname, 'ui', 'loader', 'loader.html'));
+    client.register(email, password, () => {
+      mainWindow.loadFile(path.join(__dirname, 'ui', 'listDirectory', 'listDirectory.html'));
+    });
+  });
+
+  ipcMain.on('get-directory-list', (event) => {
+    const files = listDirectory((files) => {
+      mainWindow.webContents.send('serve-directory-list', files); 
+    });
+  });
+
+  ipcMain.on('click-upload', (event) => {
+    createLoginWindow();
+    loginWindow.loadFile(path.join(__dirname, 'ui', 'uploadLogin', 'uploadLogin.html'));
+  });
+
+  ipcMain.on('click-login-upload', (event, email, password) => {
+    loginWindow.close();
+    client.upload(email, password, () => { });
+  });
+
+  ipcMain.on('click-download', (event) => {
+    createLoginWindow();
+    loginWindow.loadFile(path.join(__dirname, 'ui', 'downloadLogin', 'downloadLogin.html'));
+  });
+
+  ipcMain.on('click-login-download', (event, email, password) => {
+    loginWindow.close();
+    client.download(email, password, () => { });
+  });
+
+  function createLoginWindow() {
+    if (!loginWindow) {
+      loginWindow = new BrowserWindow({
+        webPreferences: {
+          preload: path.join(__dirname, 'ui','preload.js')
+        },
+        width: 400,
+        height: 400,
+        // close with main window
+        parent: mainWindow
+      });
+      // cleanup
+      loginWindow.on('closed', () => {
+        loginWindow = null;
+      });
+    }
+  }
+
+  mainWindow.loadFile(path.join(__dirname, 'ui', 'index', 'index.html'));
+}
+
+function listDirectory(cb) {
+  const directoryPath = path.join(__dirname, 'files', 'vault');
+  fs.readdir(directoryPath, function (err, files) {
+      if (err) {
+          console.log(err);
+      } 
+      cb(files);
+  });
+}
 
 app.whenReady().then(() => {
   createWindow();
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
-    }
+  
+  app.on('activate', function () {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
-});*/
+app.on('window-all-closed', function () {
+  if (process.platform !== 'darwin') app.quit();
+});

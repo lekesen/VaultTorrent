@@ -1,0 +1,42 @@
+body {
+    background-color: rgba(255, 160, 0, 0.46);
+    font-family: Monaco, monospace;
+}
+
+.center {
+    padding: 30px;
+    text-align: center;
+}
+
+.loader {
+    border: 12px solid #f3f3f3; /* Light grey */
+    border-top: 12px solid #f7a206; /* Blue */
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 2s linear infinite;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+.topBar {
+  padding: 14px 16px;
+}
+
+.topBar span {
+  display: inline-block;
+}
+
+button {
+  vertical-align: top;
+  background-color: #ad8225;
+  color: white;
+  border: 2px solid #000000;
+  border-radius: 5px;
+  transition-duration: 0.4s;
+}
