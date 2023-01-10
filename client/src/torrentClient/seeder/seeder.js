@@ -3,10 +3,10 @@
 // Load necessary modules
 const fs = require('fs');
 const net = require('net');
-const tracker = require('../trackerClient/trackerClient');
+const tracker = require('../tracker/trackerClient');
 const message = require('../util/message');
 const tp = require('../util/torrentParser');
-const consts = require('../util/constants');
+const consts = require('../../constants');
 
 // ONLY SEEDING FOR 1 TORRENT!
 var server = null;
@@ -30,13 +30,14 @@ module.exports.startSeeding = (torrent, filePath) => {
 		socket.on('error', (err) => console.log(err));
         socket.on('close', () => {
 			console.log('closed');
+			
 			// TODO
             //clients.splice(clients.indexOf(socket), 1);
         });
 	});
 };
 
-module.exports.stopSeeding = (torrent, filePath) => {
+module.exports.stopSeeding = (torrent) => {
     tracker.stopSeeding(torrent);
     for (var i in clients) {
         clients[i].destroy();

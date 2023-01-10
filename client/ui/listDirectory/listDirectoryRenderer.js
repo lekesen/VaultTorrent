@@ -2,6 +2,7 @@ const directoryList = document.getElementById('list');
 const reloadUiButton = document.getElementById('reloadUiBtn');
 const uploadButton = document.getElementById('uploadBtn');
 const downloadButton = document.getElementById('downloadBtn');
+const logoutButton = document.getElementById('logoutBtn');
 
 window.electronAPI.getDirectoryList();
 
@@ -25,5 +26,9 @@ uploadButton.addEventListener('click', () => {
 
 downloadButton.addEventListener('click', () => {
     window.electronAPI.clickDownload();
+});
+
+logoutButton.addEventListener('click', () => {
+    window.electronAPI.clickLogout();
 });
 

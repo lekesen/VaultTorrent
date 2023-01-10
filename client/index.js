@@ -36,7 +36,7 @@ function createWindow () {
   });
 
   ipcMain.on('get-directory-list', (event) => {
-    const files = listDirectory((files) => {
+    const files = client.listDirectory((files) => {
       mainWindow.webContents.send('serve-directory-list', files); 
     });
   });
@@ -61,6 +61,11 @@ function createWindow () {
     client.download(email, password, () => { });
   });
 
+  ipcMain.on('click-logout', (event, email, password) => {
+    mainWindow.loadFile(path.join(__dirname, 'ui', 'index', 'index.html'));
+    client.close(() => {});
+  });
+
   function createLoginWindow() {
     if (!loginWindow) {
       loginWindow = new BrowserWindow({
@@ -82,15 +87,7 @@ function createWindow () {
   mainWindow.loadFile(path.join(__dirname, 'ui', 'index', 'index.html'));
 }
 
-function listDirectory(cb) {
-  const directoryPath = path.join(__dirname, 'files', 'vault');
-  fs.readdir(directoryPath, function (err, files) {
-      if (err) {
-          console.log(err);
-      } 
-      cb(files);
-  });
-}
+
 
 app.whenReady().then(() => {
   createWindow();
@@ -101,5 +98,6 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', function () {
+  client.close(() => {});
   if (process.platform !== 'darwin') app.quit();
 });

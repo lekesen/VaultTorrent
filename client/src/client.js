@@ -40,7 +40,9 @@ module.exports.register = (email, password, cb) => {
 			if (err) {
 				console.log(err);
 			}
-			uploadVault(email, password, () => { cb()} );
+			uploadVault(email, password, () => {
+				cb();
+			});
 		});
 	});
 
@@ -48,11 +50,20 @@ module.exports.register = (email, password, cb) => {
 
 module.exports.upload = (email, password, cb) => {
 	uploadVault(email, password, ()=> { cb() });
-}
+};
 
 module.exports.download = (email, password, cb) => {
 	downloadVault(email, password, ()=>{ cb() });
-}
+};
+
+module.exports.close = (cb) => {
+	closeVault(cb);
+};
+
+module.exports.listDirectory = (cb) => {
+	const directoryPath = path.join(__dirname, '..', 'files', 'vault');
+	listDirectory(directoryPath, cb);
+};
 
 function getKeys(email, password, cb) {
 	kdf.getMasterKey(email, password, (masterKey) => {
@@ -64,17 +75,21 @@ function getKeys(email, password, cb) {
 
 function downloadVault(email, password, cb) {
 	getKeys(email, password, (sessionKeys) => {
+		torrentClient.stopSeeding(path.join(__dirname, '..', 'files', sessionKeys.authKey.toString('hex')+'.torrent'), ()=> {}); // TODO: change?
 		indexScraper.downloadTorrent(sessionKeys.authKey.toString('hex')+'.torrent', ()=> {
-			console.log('hello?');
-			cb();
+			torrentClient.downloadTorrent(path.join(__dirname, '..', 'files', sessionKeys.authKey.toString('hex')+'.torrent'), path.join(__dirname, '..', 'files', 'vault.tar.enc'), () => {
+				torrentClient.startSeeding(path.join(__dirname, '..', 'files', sessionKeys.authKey.toString('hex')+'.torrent'), path.join(__dirname, '..', 'files', 'vault.tar.enc'), cb);
+			});
+			
 		});
 	});
 }
 
 function uploadVault(email, password, cb) {
-	// TODO: stop seeding
 	console.log('Retrieving session keys...');
 	getKeys(email, password, (sessionKeys) => {
+		console.log('Stopping seeding...');
+		torrentClient.stopSeeding(path.join(__dirname, '..', 'files', sessionKeys.authKey.toString('hex')+'.torrent'), ()=> {}); // TODO: CHANGE? 
 		console.log('Encrypting vault...');
 		
 		cipher.encrypt(path.join(__dirname, '..', 'files', 'vault'), path.join(__dirname, '..', 'files', 'vault'), sessionKeys.encKey, () => {
@@ -82,30 +97,34 @@ function uploadVault(email, password, cb) {
 			torrentClient.createTorrent(path.join(__dirname, '..', 'files', 'vault.tar.enc'), path.join(__dirname, '..', 'files', sessionKeys.authKey.toString('hex')+'.torrent'), () => {
 				console.log('Uploading torrent file...');
 				indexScraper.uploadTorrent(sessionKeys.authKey.toString('hex') + '.torrent', () => {
-					console.log('Torrent has finished uploading.');
-					// TODO: start seeding
-					cb();
+					console.log('Starting seeding');
+					torrentClient.startSeeding(path.join(__dirname, '..', 'files', sessionKeys.authKey.toString('hex')+'.torrent'), path.join(__dirname, '..', 'files', 'vault.tar.enc'), cb);
 				});
 			});
 		});
 	});
 }
 
-function closeVault() {
+function closeVault(cb) {
 	// TODO: stop seeding
-	// TODO: remove files
+	fs.rmSync(path.join(__dirname, '..', 'files', 'vault'), { recursive: true, force: true }, (err) => {
+		if(err) {
+			console.log(err);
+		}
+	});
+	
+	fs.unlink(path.join(__dirname, '..', 'files', 'vault.tar'), (err) => {
+		if(err) {
+			console.log(err);
+		}
+	});
 }
 
-/*
-              fs.unlink(path.join(__dirname, 'files', 'vault.tar'), (err) => {
-                if(err) {
-                  console.log(err);
-                }
-              });
-              fs.rmSync(path.join(__dirname, 'files', 'vault'), { recursive: true, force: true }, (err) => {
-                if(err) {
-                  console.log(err);
-                }
-              });*/
-			  // Decrypt*/
-              //cipher.decrypt(path.join(__dirname, 'files', 'vault'), path.join(__dirname, 'files', 'vault'), sessionKeys.encKey, () => {})
+function listDirectory(directoryPath, cb) {
+	fs.readdir(directoryPath, function (err, files) {
+		if (err) {
+			console.log(err);
+		} 
+		cb(files);
+	});
+}

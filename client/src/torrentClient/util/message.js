@@ -4,7 +4,7 @@
 const Buffer = require('buffer').Buffer;
 
 const tp = require('./torrentParser');
-const util = require('.');
+const util = require('./util');
 
 /* 
     TYPES OF MESSAGES

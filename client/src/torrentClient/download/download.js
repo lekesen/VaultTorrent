@@ -3,9 +3,9 @@
 // Load necessary modules
 const fs = require('fs');
 const net = require('net');
-const tracker = require('../trackerClient/trackerClient');
+const tracker = require('../tracker/trackerClient');
 const message = require('../util/message');
-const consts = require('../util/constants');
+const consts = require('../../constants');
 
 // Load necessary classes
 const Pieces = require('../util/Pieces');
@@ -14,7 +14,7 @@ const Queue = require('../util/Queue');
 // ONLY DOWNLOADS 1 FILE
 
 // Main function
-module.exports = (torrent, download_path) => {
+module.exports = (torrent, download_path, cb) => {
     // Create file to save downloaded data
     const file = fs.openSync(download_path, 'w');
 
@@ -24,7 +24,7 @@ module.exports = (torrent, download_path) => {
     // Get peer list and start download
     tracker.getPeers(torrent, peers => {
 		console.log(peers);
-		peers.forEach(peer => { download(peer, torrent, pieces, file); });
+		peers.forEach(peer => { download(peer, torrent, pieces, file, cb); });
 	});
 };
 
@@ -37,7 +37,7 @@ module.exports = (torrent, download_path) => {
 */
 
 // Download from 1 peer
-function download(peer, torrent, pieces, file) {
+function download(peer, torrent, pieces, file, cb) {
     // Create TCP socket
     const socket = new net.Socket();
 
@@ -50,7 +50,7 @@ function download(peer, torrent, pieces, file) {
 
     // Set up socket listener
     const queue = new Queue(torrent);
-    onWholeMsg(socket, msg => msgHandler(msg, socket, pieces, queue, torrent, file));
+    onWholeMsg(socket, msg => msgHandler(msg, socket, pieces, queue, torrent, file, cb));
 }
 
 // Listen until a packet is full
@@ -81,7 +81,7 @@ function onWholeMsg(socket, cb) {
 }
 
 // Message handler function
-function msgHandler(msg, socket, pieces, queue, torrent, file) {
+function msgHandler(msg, socket, pieces, queue, torrent, file, cb) {
     if (isHandshake(msg)) {
 		// If it is hanshake, show we are interested
 		socket.write(message.buildInterested());
@@ -93,7 +93,7 @@ function msgHandler(msg, socket, pieces, queue, torrent, file) {
 		if (m.id === 1) unchokeHandler(socket, pieces, queue);
 		if (m.id === 4) haveHandler(socket, pieces, queue, m.payload);
 		if (m.id === 5) bitfieldHandler(socket, pieces, queue, m.payload);
-		if (m.id === 7) pieceHandler(socket, pieces, queue, torrent, file, m.payload);
+		if (m.id === 7) pieceHandler(socket, pieces, queue, torrent, file, m.payload, cb);
 	}
 }
 
@@ -146,7 +146,7 @@ function bitfieldHandler(socket, pieces, queue, payload) {
 
 
 // If we receive a piece
-function pieceHandler(socket, pieces, queue, torrent, file, pieceResp) {
+function pieceHandler(socket, pieces, queue, torrent, file, pieceResp, cb) {
 	// Show download progress
     // TODO: implement with UI
 	pieces.printPercentDone();
@@ -166,7 +166,7 @@ function pieceHandler(socket, pieces, queue, torrent, file, pieceResp) {
 		if (pieces.isDone()) {
 			// If download has finished, close the socket and file
 			socket.end();
-			try { fs.closeSync(file); } catch(e) {console.log(e);}
+			try { fs.closeSync(file); cb();} catch(e) {console.log(e);}
 		} else {
 			// If more pieces to be downloaded, request more
 			requestPiece(socket,pieces, queue);

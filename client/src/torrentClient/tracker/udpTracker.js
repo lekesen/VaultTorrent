@@ -7,8 +7,8 @@ const urlParse = require('url').parse;
 const crypto = require('crypto'); // To generate random numbers
 
 const tp = require('../util/torrentParser');
-const util = require('../util');
-const consts = require('../util/constants');
+const util = require('../util/util');
+const consts = require('../../constants');
 
 /*
 UDP Tracker protocol:
