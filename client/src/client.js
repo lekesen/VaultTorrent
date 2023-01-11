@@ -12,12 +12,17 @@ const torrentClient = require(path.join(__dirname, 'torrentClient', 'torrentClie
 module.exports.login = (email, password, cb) => {
     console.log('Retrieving session keys...');
     getKeys(email, password, (sessionKeys) => {
-		console.log('Decrypting vault...');
+		// If vault exists --> decrypt vault
 		const dir = path.join(__dirname, '..', 'files', 'vault');
-		if (!fs.existsSync(dir)) {
-			fs.mkdirSync(dir);
+		if (fs.existsSync(dir)) {
+			console.log('Decrypting vault...');
+			if (!fs.existsSync(dir)) {
+				fs.mkdirSync(dir);
+			}
+			cipher.decrypt(path.join(__dirname, '..', 'files', 'vault'), path.join(__dirname, '..', 'files', 'vault'), sessionKeys.encKey, () => { cb(); });
+		} else {
+			downloadVault(email, password, cb);
 		}
-		cipher.decrypt(path.join(__dirname, '..', 'files', 'vault'), path.join(__dirname, '..', 'files', 'vault'), sessionKeys.encKey, () => { cb(); });
 	});  
 };
 
