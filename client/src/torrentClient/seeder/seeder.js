@@ -42,10 +42,12 @@ module.exports.stopSeeding = (torrent) => {
     for (var i in clients) {
         clients[i].destroy();
     }
-    server.close(function () {
-        console.log('server closed.');
-        server.unref();
-    });
+	if (server) {
+		server.close(function () {
+			console.log('server closed.');
+			server.unref();
+		});
+	}
 };
 
 function onWholeMsg(socket, callback) {

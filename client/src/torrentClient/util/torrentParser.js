@@ -11,7 +11,10 @@ module.exports.BLOCK_LEN = Math.pow(2, 14);
 
 // Parse torrent file and return as JSON
 module.exports.open = (filepath) => {
-  return bencode.decode(fs.readFileSync(filepath));
+	if (fs.existsSync(filepath)) {
+		return bencode.decode(fs.readFileSync(filepath));
+	}
+	return null;
 };
 
 // Hash (SHA-1) info section of torrent file to create 'Info Hash'

@@ -13,15 +13,18 @@ module.exports.createTorrent = (filePath, outputPath, cb) => {
 
 module.exports.downloadTorrent = (torrentPath, filePath, cb) => {
     const torrent = tp.open(torrentPath);
+    if (!torrent) { return; }
     download(torrent, filePath, cb);
 };
 
 module.exports.startSeeding = (torrentPath, filePath) => {
     const torrent = tp.open(torrentPath);
+    if (!torrent) { return; }
     seeder.startSeeding(torrent, filePath);
 };
 
 module.exports.stopSeeding = (torrentPath) => {
     const torrent = tp.open(torrentPath);
+    if (!torrent) { return; }
     seeder.stopSeeding(torrent);
 }
