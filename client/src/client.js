@@ -16,10 +16,9 @@ module.exports.login = (email, password, cb) => {
 		const dir = path.join(__dirname, '..', 'files', 'vault');
 		if (fs.existsSync(dir)) {
 			console.log('Decrypting vault...');
-			if (!fs.existsSync(dir)) {
-				fs.mkdirSync(dir);
-			}
 			cipher.decrypt(path.join(__dirname, '..', 'files', 'vault'), path.join(__dirname, '..', 'files', 'vault'), sessionKeys.encKey, () => { cb(); });
+			// Start seeding
+			torrentClient.startSeeding(path.join(__dirname, '..', 'files', sessionKeys.authKey.toString('hex')+'.torrent'), path.join(__dirname, '..', 'files', 'vault.tar.enc'));
 		} else {
 			downloadVault(email, password, cb);
 		}
@@ -81,7 +80,12 @@ function downloadVault(email, password, cb) {
 		torrentClient.stopSeeding(path.join(__dirname, '..', 'files', sessionKeys.authKey.toString('hex')+'.torrent'), ()=> {}); // TODO: change?
 		indexScraper.downloadTorrent(sessionKeys.authKey.toString('hex')+'.torrent', ()=> {
 			torrentClient.downloadTorrent(path.join(__dirname, '..', 'files', sessionKeys.authKey.toString('hex')+'.torrent'), path.join(__dirname, '..', 'files', 'vault.tar.enc'), () => {
+				const dir = path.join(__dirname, '..', 'files', 'vault');
+				if (!fs.existsSync(dir)) {
+					fs.mkdirSync(dir);
+				}
 				cipher.decrypt(path.join(__dirname, '..', 'files', 'vault'), path.join(__dirname, '..', 'files', 'vault'), sessionKeys.encKey, () => {
+					console.log('HELLO???');
 					torrentClient.startSeeding(path.join(__dirname, '..', 'files', sessionKeys.authKey.toString('hex')+'.torrent'), path.join(__dirname, '..', 'files', 'vault.tar.enc'));
 					cb();
 				});

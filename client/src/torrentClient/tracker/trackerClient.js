@@ -116,7 +116,7 @@ function notifyNoSeeding(trackerUrl, torrent) {
         // Stop scheduled tasks
 
         for (const [key, value] of Object.entries(programmedNotifySeed)) {
-            clearTimeout(programmedNotify[key]);
+            clearTimeout(programmedNotifySeed[key]);
             delete programmedNotifySeed[key];
         }
 
