@@ -151,12 +151,13 @@ function pieceHandler(socket, pieces, queue, torrent, file, pieceResp, cb) {
     // TODO: implement with UI
 	pieces.printPercentDone();
 
-	pieces.addReceived(pieceResp);
-
-	// Write to download file
-	const offset = pieceResp.index * torrent.info['piece length'] + pieceResp.begin;
 	
 	if (!pieces.isDone()) {
+		pieces.addReceived(pieceResp);
+
+		// Write to download file
+		const offset = pieceResp.index * torrent.info['piece length'] + pieceResp.begin;
+
 		fs.writeSync(file, pieceResp.block, 0, pieceResp.block.length, offset, (err) => {
 			if (err) {
 				console.log(err);
