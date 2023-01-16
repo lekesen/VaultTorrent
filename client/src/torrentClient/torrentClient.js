@@ -28,4 +28,4 @@ module.exports.stopSeeding = (torrentPath) => {
     const torrent = tp.open(torrentPath);
     if (!torrent) { return; }
     seeder.stopSeeding(torrent);
-}
+};
