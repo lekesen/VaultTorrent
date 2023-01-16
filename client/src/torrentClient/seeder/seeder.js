@@ -17,7 +17,6 @@ module.exports.startSeeding = (torrent, filePath) => {
 
     // TCP Server
 	server= net.createServer();
-
 	server.listen(consts.PORT, consts.IP, () => {
 		console.log("TCP BitTorrent server listerning at port 6881.");
 	});
