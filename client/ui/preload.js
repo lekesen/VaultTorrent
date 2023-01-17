@@ -11,4 +11,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
     clickDownload: () => ipcRenderer.send('click-download'),
     clickLoginDownload: (email, password) => ipcRenderer.send('click-login-download', email, password),
     clickLogout: () => ipcRenderer.send('click-logout'),
+    clickDirectory: (filename) => ipcRenderer.send('click-directory', filename),
 })

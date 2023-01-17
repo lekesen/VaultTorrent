@@ -3,6 +3,7 @@
 // Load necessary modules
 const fs = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
 
 const kdf = require(path.join(__dirname, 'kdf'));
 const indexScraper = require(path.join(__dirname, 'webIndexScraper'));
@@ -66,6 +67,20 @@ module.exports.listDirectory = (cb) => {
 	const directoryPath = path.join(__dirname, '..', 'files', 'vault');
 	listDirectory(directoryPath, cb);
 };
+
+module.exports.openFile = (fileName) => {
+	exec('open '+ path.join(__dirname, '..', 'files', 'vault', fileName), (err, stdout, stderr) => {
+        if (err) {
+            console.log(err);
+        }
+        if (stderr) {
+            console.log(stderr);
+        };
+        
+
+		console.log("Hello?");
+    });
+}
 
 function getKeys(email, password, cb) {
 	kdf.getMasterKey(email, password, (masterKey) => {

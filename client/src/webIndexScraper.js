@@ -17,7 +17,7 @@ module.exports.uploadTorrent = (fileName, cb) => {
     formData.append("uploadedFile", fileStream, fileName);
 
     // Upload file
-    axios.post('http://10.0.2.8:4000/uploadFile', formData, {
+    axios.post('http://localhost:4000/uploadFile', formData, {
         headers: {
             "Content-Type": "multipart/form-data",
         }
@@ -35,7 +35,7 @@ module.exports.downloadTorrent = (fileName, cb) => {
 };
 
 async function downloadFile(fileName, cb) {
-    const url = 'http://10.0.2.8:4000/download';
+    const url = 'http://localhost:4000/download';
 	const filePath = path.join(__dirname, '..', 'files', fileName);
 	const writeStream = fs.createWriteStream(filePath);
 
@@ -43,7 +43,7 @@ async function downloadFile(fileName, cb) {
 		downloadFile: fileName
 	};
 
-	const response = await axios.post('http://10.0.2.8:4000/download', qs.stringify(form), {responseType: 'stream'});
+	const response = await axios.post('http://localhost:4000/download', qs.stringify(form), {responseType: 'stream'});
 
 	response.data.pipe(writeStream);   
 

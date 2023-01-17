@@ -78,7 +78,7 @@ module.exports.startServer = () => {
     // Start tracker at designated port address
     const port = 8080;
     //const hostname = 'localhost';//'10.0.2.8';
-    const host = '10.0.2.8';
+    const host = 'localhost';
 
     server.listen(port, host, () => {
         // Do something on listening...

@@ -66,6 +66,10 @@ function createWindow () {
     client.close(() => {});
   });
 
+  ipcMain.on('click-directory', (event, filename) => {
+    client.openFile(filename);
+  });
+
   function createLoginWindow() {
     if (!loginWindow) {
       loginWindow = new BrowserWindow({
