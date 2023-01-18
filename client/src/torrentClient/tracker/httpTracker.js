@@ -5,10 +5,12 @@ const http = require('http');
 const Buffer = require('buffer').Buffer;
 const urlParse = require('url').parse;
 const bencode = require('bencode');
+const path = require('path');
 
-const tp = require('../util/torrentParser');
-const util = require('../util/util');
-const consts = require('../../constants');
+const consts = require(path.join(__dirname, '..', '..', 'constants'));
+const tp = require(consts.TORRENT_PARSER);
+const util = require(consts.UTIL);
+
 /*
 HTTP Tracker protocol:
 	1) Send announce request w/ HTTP.

@@ -3,20 +3,23 @@
 // Load necessary modules
 const fs = require('fs');
 const net = require('net');
-const tracker = require('../tracker/trackerClient');
-const message = require('../util/message');
-const consts = require('../../constants');
+const path = require('path');
+
+const consts = require(path.join(__dirname, '..', '..', 'constants'));
+
+const tracker = require(consts.TRACKER_CLIENT);
+const message = require(consts.MESSAGE);
 
 // Load necessary classes
-const Pieces = require('../util/Pieces');
-const Queue = require('../util/Queue');
+const Pieces = require(consts.PIECES);
+const Queue = require(consts.QUEUE);
 
 // ONLY DOWNLOADS 1 FILE
 
 // Main function
-module.exports = (torrent, download_path, cb) => {
+module.exports = (torrent, downloadPath, cb) => {
     // Create file to save downloaded data
-    const file = fs.openSync(download_path, 'w');
+    const file = fs.openSync(downloadPath, 'w');
 
     // Create Pieces object, to orchestrate download with different peers
     const pieces = new Pieces(torrent);
@@ -154,6 +157,10 @@ function pieceHandler(socket, pieces, queue, torrent, file, pieceResp, cb) {
 	
 	if (!pieces.isDone()) {
 		pieces.addReceived(pieceResp);
+
+		if(pieces.isPieceDone(pieceResp.index)) {
+			console.log(pieceResp.index + ' is done.');
+		}
 
 		// Write to download file
 		const offset = pieceResp.index * torrent.info['piece length'] + pieceResp.begin;

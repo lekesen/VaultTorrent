@@ -2,10 +2,13 @@
 
 // Load necessary modules
 const path = require('path');
-const create = require(path.join(__dirname, 'create', 'createTorrent'));
-const download = require(path.join(__dirname, 'download', 'download'));
-const tp = require(path.join(__dirname, 'util', 'torrentParser'));
-const seeder = require(path.join(__dirname, 'seeder', 'seeder'));
+
+const consts = require(path.join(__dirname, '..', 'constants'));
+const create = require(consts.CREATE_TORRENT);
+const download = require(consts.LEECH_TORRENT);
+const seeder = require(consts.SEED_TORRENT);
+const tp = require(consts.TORRENT_PARSER);
+
 
 module.exports.createTorrent = (filePath, outputPath, cb) => {
     create(filePath, outputPath, cb);
@@ -19,7 +22,6 @@ module.exports.downloadTorrent = (torrentPath, filePath, cb) => {
 
 module.exports.startSeeding = (torrentPath, filePath) => {
     const torrent = tp.open(torrentPath);
-    console.log('HELLO????');
     if (!torrent) { return; }
     seeder.startSeeding(torrent, filePath);
 };

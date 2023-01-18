@@ -1,7 +1,10 @@
 'use strict';
 
 // Load necessary modules
-const tp = require('./torrentParser');
+const path = require('path');
+
+const consts = require(path.join(__dirname, '..', '..', 'constants'));
+const tp = require(consts.TORRENT_PARSER);
 
 // Define Queue class for piece request management
 module.exports = class {

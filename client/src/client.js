@@ -2,39 +2,40 @@
 
 // Load necessary modules
 const fs = require('fs');
-const path = require('path');
 const { exec } = require('child_process');
+const path = require('path');
 
-const kdf = require(path.join(__dirname, 'kdf'));
-const indexScraper = require(path.join(__dirname, 'webIndexScraper'));
-const cipher = require(path.join(__dirname, 'cipher'));
-const torrentClient = require(path.join(__dirname, 'torrentClient', 'torrentClient'));
+const consts = require(path.join(__dirname, 'constants'));
+const kdf = require(consts.KDF);
+const indexScraper = require(consts.INDEX_SCRAPER);
+const cipher = require(consts.CIPHER);
+const torrentClient = require(consts.TORRENT_CLIENT);
 
+// Login
 module.exports.login = (email, password, cb) => {
     console.log('Retrieving session keys...');
     getKeys(email, password, (sessionKeys) => {
 		// If vault exists --> decrypt vault
-		const dir = path.join(__dirname, '..', 'files', 'vault');
-		if (fs.existsSync(dir)) {
+		if (fs.existsSync(consts.ENCRYPTED_VAULT_DIRECTORY)) {
 			console.log('Decrypting vault...');
-			cipher.decrypt(path.join(__dirname, '..', 'files', 'vault'), path.join(__dirname, '..', 'files', 'vault'), sessionKeys.encKey, () => { cb(); });
+			cipher.decrypt(consts.VAULT_DIRECTORY, consts.COMPRESSED_VAULT_DIRECTORY, consts.ENCRYPTED_VAULT_DIRECTORY,sessionKeys.encKey, () => { cb(); });
 			// Start seeding
-			torrentClient.startSeeding(path.join(__dirname, '..', 'files', sessionKeys.authKey.toString('hex')+'.torrent'), path.join(__dirname, '..', 'files', 'vault.tar.enc'));
+			torrentClient.startSeeding(getTorrentDirectory(sessionKeys.authKey.toString('hex')+'.torrent'), consts.ENCRYPTED_VAULT_DIRECTORY);
 		} else {
 			downloadVault(email, password, cb);
 		}
 	});  
 };
 
+// Register
 module.exports.register = (email, password, cb) => {
 	console.log('Creating vault...');
 
 	// Create directory
-	const dir = path.join(__dirname, '..', 'files', 'vault');
-	if (!fs.existsSync(dir)) {
-		fs.mkdirSync(dir);
+	if (!fs.existsSync(consts.VAULT_DIRECTORY)) {
+		fs.mkdirSync(consts.VAULT_DIRECTORY);
 	}
-	fs.open(path.join(dir, 'readme.txt'), 'w', (err, file) => {
+	fs.open(path.join(consts.VAULT_DIRECTORY, 'readme.txt'), 'w', (err, file) => {
 		if (err) {
 		  console.log(err);
 		  return;
@@ -48,37 +49,35 @@ module.exports.register = (email, password, cb) => {
 			});
 		});
 	});
-
 };
 
+// Upload Vault
 module.exports.upload = (email, password, cb) => {
 	uploadVault(email, password, ()=> { cb() });
 };
 
+// Download Vault
 module.exports.download = (email, password, cb) => {
 	downloadVault(email, password, ()=>{ cb() });
 };
 
+// Close Vault
 module.exports.close = (cb) => {
 	closeVault(cb);
 };
 
 module.exports.listDirectory = (cb) => {
-	const directoryPath = path.join(__dirname, '..', 'files', 'vault');
-	listDirectory(directoryPath, cb);
+	listDirectory(consts.VAULT_DIRECTORY, cb);
 };
 
 module.exports.openFile = (fileName) => {
-	exec('open '+ path.join(__dirname, '..', 'files', 'vault', fileName), (err, stdout, stderr) => {
+	exec('open '+ path.join(consts.VAULT_DIRECTORY, fileName), (err, stdout, stderr) => {
         if (err) {
             console.log(err);
         }
         if (stderr) {
             console.log(stderr);
         };
-        
-
-		console.log("Hello?");
     });
 }
 
@@ -92,16 +91,15 @@ function getKeys(email, password, cb) {
 
 function downloadVault(email, password, cb) {
 	getKeys(email, password, (sessionKeys) => {
-		torrentClient.stopSeeding(path.join(__dirname, '..', 'files', sessionKeys.authKey.toString('hex')+'.torrent'), ()=> {}); // TODO: change?
-		indexScraper.downloadTorrent(sessionKeys.authKey.toString('hex')+'.torrent', ()=> {
-			torrentClient.downloadTorrent(path.join(__dirname, '..', 'files', sessionKeys.authKey.toString('hex')+'.torrent'), path.join(__dirname, '..', 'files', 'vault.tar.enc'), () => {
-				const dir = path.join(__dirname, '..', 'files', 'vault');
-				if (!fs.existsSync(dir)) {
-					fs.mkdirSync(dir);
+		const torrentFile = getTorrentDirectory(sessionKeys.authKey.toString('hex')+'.torrent');
+		torrentClient.stopSeeding(torrentFile, ()=> {}); // TODO: change?
+		indexScraper.downloadTorrent(torrentFile, ()=> {
+			torrentClient.downloadTorrent(torrentFile, consts.ENCRYPTED_VAULT_DIRECTORY, () => {
+				if (!fs.existsSync(consts.VAULT_DIRECTORY)) {
+					fs.mkdirSync(consts.VAULT_DIRECTORY);
 				}
-				cipher.decrypt(path.join(__dirname, '..', 'files', 'vault'), path.join(__dirname, '..', 'files', 'vault'), sessionKeys.encKey, () => {
-					console.log('HELLO???');
-					torrentClient.startSeeding(path.join(__dirname, '..', 'files', sessionKeys.authKey.toString('hex')+'.torrent'), path.join(__dirname, '..', 'files', 'vault.tar.enc'));
+				cipher.decrypt(consts.VAULT_DIRECTORY, consts.COMPRESSED_VAULT_DIRECTORY, consts.ENCRYPTED_VAULT_DIRECTORY,sessionKeys.encKey, () => {
+					torrentClient.startSeeding(torrentFile, consts.ENCRYPTED_VAULT_DIRECTORY);
 					cb();
 				});
 			});
@@ -113,17 +111,18 @@ function downloadVault(email, password, cb) {
 function uploadVault(email, password, cb) {
 	console.log('Retrieving session keys...');
 	getKeys(email, password, (sessionKeys) => {
+		const torrentFile = getTorrentDirectory(sessionKeys.authKey.toString('hex')+'.torrent');
 		console.log('Stopping seeding...');
-		torrentClient.stopSeeding(path.join(__dirname, '..', 'files', sessionKeys.authKey.toString('hex')+'.torrent'), ()=> {}); // TODO: CHANGE? 
+		torrentClient.stopSeeding(torrentFile, ()=> {}); // TODO: CHANGE? 
 		console.log('Encrypting vault...');
 		
-		cipher.encrypt(path.join(__dirname, '..', 'files', 'vault'), path.join(__dirname, '..', 'files', 'vault'), sessionKeys.encKey, () => {
+		cipher.encrypt(consts.VAULT_DIRECTORY, consts.COMPRESSED_VAULT_DIRECTORY, consts.ENCRYPTED_VAULT_DIRECTORY, sessionKeys.encKey, () => {
 			console.log('Creating torrent file...');
-			torrentClient.createTorrent(path.join(__dirname, '..', 'files', 'vault.tar.enc'), path.join(__dirname, '..', 'files', sessionKeys.authKey.toString('hex')+'.torrent'), () => {
+			torrentClient.createTorrent(consts.ENCRYPTED_VAULT_DIRECTORY, torrentFile, () => {
 				console.log('Uploading torrent file...');
-				indexScraper.uploadTorrent(sessionKeys.authKey.toString('hex') + '.torrent', () => {
+				indexScraper.uploadTorrent(torrentFile, () => {
 					console.log('Starting seeding');
-					torrentClient.startSeeding(path.join(__dirname, '..', 'files', sessionKeys.authKey.toString('hex')+'.torrent'), path.join(__dirname, '..', 'files', 'vault.tar.enc'));
+					torrentClient.startSeeding(torrentFile, consts.ENCRYPTED_VAULT_DIRECTORY);
 					cb();
 				});
 			});
@@ -133,13 +132,13 @@ function uploadVault(email, password, cb) {
 
 function closeVault(cb) {
 	// TODO: stop seeding
-	fs.rmSync(path.join(__dirname, '..', 'files', 'vault'), { recursive: true, force: true }, (err) => {
+	fs.rmSync(consts.VAULT_DIRECTORY, { recursive: true, force: true }, (err) => {
 		if(err) {
 			console.log(err);
 		}
 	});
 	
-	fs.unlink(path.join(__dirname, '..', 'files', 'vault.tar'), (err) => {
+	fs.unlink(consts.COMPRESSED_VAULT_DIRECTORY, (err) => {
 		if(err) {
 			console.log(err);
 		}
@@ -153,4 +152,8 @@ function listDirectory(directoryPath, cb) {
 		} 
 		cb(files);
 	});
+}
+
+function getTorrentDirectory(torrentName) {
+	return path.join(consts.TORRENT_DIRECTORY, torrentName);
 }

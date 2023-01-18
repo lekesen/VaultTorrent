@@ -3,10 +3,12 @@
 // Load necessary modules
 const fs = require('fs');
 const net = require('net');
-const tracker = require('../tracker/trackerClient');
-const message = require('../util/message');
-const tp = require('../util/torrentParser');
-const consts = require('../../constants');
+const path = require('path');
+
+const consts = require(path.join(__dirname, '..', '..', 'constants'));
+const tracker = require(consts.TRACKER_CLIENT);
+const message = require(consts.MESSAGE);
+const tp = require(consts.TORRENT_PARSER);
 
 // ONLY SEEDING FOR 1 TORRENT!
 var server = null;
@@ -17,8 +19,8 @@ module.exports.startSeeding = (torrent, filePath) => {
 
     // TCP Server
 	server= net.createServer();
-	server.listen(consts.PORT, consts.IP, () => {
-		console.log("TCP BitTorrent server listerning at port 6881.");
+	server.listen(consts.CLIENT_PORT, consts.CLIENT_IP, () => {
+		console.log("TCP BitTorrent server listerning at port" + consts.CLIENT_PORT);
 	});
 
 	server.on('error', (err) => console.log(err));

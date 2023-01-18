@@ -2,9 +2,11 @@
 
 // Load necessary modules
 const Buffer = require('buffer').Buffer;
+const path = require('path');
 
-const tp = require('./torrentParser');
-const util = require('./util');
+const consts = require(path.join(__dirname, '..', '..', 'constants'));
+const tp = require(consts.TORRENT_PARSER);
+const util = require(consts.UTIL);
 
 /* 
     TYPES OF MESSAGES

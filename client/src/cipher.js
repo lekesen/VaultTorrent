@@ -1,7 +1,6 @@
 'use strict';
 
 // Load necessary modules
-const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { exec } = require('child_process');
@@ -11,9 +10,9 @@ const algorithm = 'aes-256-cbc';
 // TODO: IV in 
 const iv = Buffer.from('14189dc35ae35e75ff31d7502e245cd9', 'hex');
 
-module.exports.encrypt = (folderPath, outputPath, key, cb) => {
+module.exports.encrypt = (folderPath, compressedPath, encryptedPath, key, cb) => {
     // Convert folder to .tgz
-    exec('tar -czvf ' + outputPath + '.tar -C ' + folderPath + ' .', (err, stdout, stderr) => {
+    exec('tar -czvf ' + compressedPath + ' -C ' + folderPath + ' .', (err, stdout, stderr) => {
         if (err) {
             console.log(err);
         }
@@ -23,8 +22,8 @@ module.exports.encrypt = (folderPath, outputPath, key, cb) => {
 
         // Encrypt
         const cipher = crypto.createCipheriv(algorithm, key, iv);
-        const input = fs.createReadStream(outputPath+'.tar');
-        const output = fs.createWriteStream(outputPath+'.tar.enc');
+        const input = fs.createReadStream(compressedPath);
+        const output = fs.createWriteStream(encryptedPath);
         
         input.pipe(cipher).pipe(output);
         
@@ -32,22 +31,21 @@ module.exports.encrypt = (folderPath, outputPath, key, cb) => {
             console.log('Encrypted file written to disk!');
             cb();
         });
-        // Remove folder
     });
 };
 
-module.exports.decrypt = (inputPath, folderPath, key, cb) => {
+module.exports.decrypt = (folderPath, compressedPath, encryptedPath, key, cb) => {
     // Decrypt
     const cipher = crypto.createDecipheriv(algorithm, key, iv);
-    const input = fs.createReadStream(inputPath+'.tar.enc');
-    const output = fs.createWriteStream(inputPath+'.tar');
+    const input = fs.createReadStream(encryptedPath);
+    const output = fs.createWriteStream(compressedPath);
     
     input.pipe(cipher).pipe(output);
     
     output.on('finish', function() {
         console.log('Decrypted file written to disk!');
 
-        exec('tar -xvf ' + inputPath + '.tar -C ' + folderPath, (err, stdout, stderr) => {
+        exec('tar -xvf ' + compressedPath + ' -C ' + folderPath, (err, stdout, stderr) => {
             if (err) {
                 console.log(err);
             }
@@ -57,13 +55,5 @@ module.exports.decrypt = (inputPath, folderPath, key, cb) => {
 
             cb({})
         });
-
-        // Decompress .tgz
-        /*
-        tar.extract( { file: inputPath } ).then((err) => {
-            if(err) console.log(err)
-            console.log('finished decompression');
-            cb();
-        });*/
     });
 };

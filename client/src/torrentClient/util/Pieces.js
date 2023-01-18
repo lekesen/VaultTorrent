@@ -1,7 +1,10 @@
 'use strict';
 
 // Load necessary modules
-const tp = require('./torrentParser');
+const path = require('path');
+
+const consts = require(path.join(__dirname, '..', '..', 'constants'));
+const tp = require(consts.TORRENT_PARSER);
 
 // Define Pieces class
 module.exports = class {
@@ -9,6 +12,7 @@ module.exports = class {
         function buildPiecesArray() {
             // torrent.info.pieces gives a 20-bit-sha for each piece
             const nPieces = torrent.info.pieces.length / 20;
+            console.log(nPieces);
             // Array of arrays --> pieces and blocks
             const arr = new Array(nPieces).fill(null);
 
@@ -25,11 +29,17 @@ module.exports = class {
         this._requested[pieceBlock.index][blockIndex] = true;
     }
     
-    // Mark piece as received
+    // Mark piece as received. 
     addReceived(pieceBlock) {
         const blockIndex = pieceBlock.begin / tp.BLOCK_LEN;
         this._received[pieceBlock.index][blockIndex] = true;
     }
+
+    isPieceDone(pieceIndex) {
+        return this._received[pieceIndex].every(blocks => blocks.every(i => i));
+    }
+
+    
     
     // Tell if piece is needed or it has already been requested/ received
     needed(pieceBlock) {

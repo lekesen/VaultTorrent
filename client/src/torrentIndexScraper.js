@@ -5,19 +5,20 @@
 const axios = require('axios');
 const qs = require('qs');
 const FormData = require('form-data');
-
 const fs = require('fs');
 const path = require('path');
 
+const consts = require(path.join(__dirname, 'constants'));
 
-module.exports.uploadTorrent = (fileName, cb) => {
+
+module.exports.uploadTorrent = (torrentPath, cb) => {
     // Get file to upload
     let formData = new FormData();
-    const fileStream = fs.createReadStream(path.join(__dirname, '..', 'files', fileName));
-    formData.append("uploadedFile", fileStream, fileName);
+    const fileStream = fs.createReadStream(torrentPath);
+    formData.append("uploadedFile", fileStream, path.basename(torrentPath));
 
     // Upload file
-    axios.post('http://localhost:4000/uploadFile', formData, {
+    axios.post('http://'+consts.INDEX_IP+':'+consts.INDEX_PORT+consts.INDEX_UPLOAD_PATH, formData, {
         headers: {
             "Content-Type": "multipart/form-data",
         }
@@ -30,20 +31,18 @@ module.exports.uploadTorrent = (fileName, cb) => {
     });
 };
 
-module.exports.downloadTorrent = (fileName, cb) => {
-    downloadFile(fileName, cb);
+module.exports.downloadTorrent = (torrentPath, cb) => {
+    downloadFile(torrentPath, cb);
 };
 
-async function downloadFile(fileName, cb) {
-    const url = 'http://localhost:4000/download';
-	const filePath = path.join(__dirname, '..', 'files', fileName);
+async function downloadFile(filePath, cb) {
 	const writeStream = fs.createWriteStream(filePath);
 
     const form = {
-		downloadFile: fileName
+		downloadFile: path.basename(filePath)
 	};
 
-	const response = await axios.post('http://localhost:4000/download', qs.stringify(form), {responseType: 'stream'});
+	const response = await axios.post('http://'+consts.INDEX_IP+':'+consts.INDEX_PORT+consts.INDEX_DOWNLOAD_PATH, qs.stringify(form), {responseType: 'stream'});
 
 	response.data.pipe(writeStream);   
 

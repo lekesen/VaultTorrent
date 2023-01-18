@@ -1,12 +1,55 @@
 'use strict';
 
-module.exports = Object.freeze({
-    IP: '192.168.1.45',
-    PORT: 6881,
+const path = require('path');
 
-    INDEXER_IP: 'localhost',
-    INDEXER_PORT: '4000',
-    UPLOAD_PATH: '/uploadFile',
-    DOWNLOAD_PATH: '/download',
+module.exports = Object.freeze({
+    // Client network config
+    CLIENT_IP: '192.168.1.45',
+    CLIENT_PORT: 6881,
+
+    // BitTorrent index config
+    INDEX_IP: 'localhost',
+    INDEX_PORT: 4000,
+    INDEX_UPLOAD_PATH: '/uploadFile',
+    INDEX_DOWNLOAD_PATH: '/download',
+
+    // Tracker config
+    TRACKER_IP: 'localhost',
+    TRACKER_PORT: 8000,
+    
+    // File directories
+    VAULT_DIRECTORY: path.join(__dirname, '..', 'files', 'vault'),
+    COMPRESSED_VAULT_DIRECTORY: path.join(__dirname, '..', 'files', 'vault.tar'),
+    ENCRYPTED_VAULT_DIRECTORY: path.join(__dirname, '..', 'files', 'vault.tar.enc'),
+    TORRENT_DIRECTORY: path.join(__dirname, '..', 'files'),
+
+    // Code diretories
+    CIPHER: path.join(__dirname, 'cipher'),
+    CLIENT: path.join(__dirname, 'client'),
+    KDF: path.join(__dirname, 'kdf'),
+    INDEX_SCRAPER: path.join(__dirname, 'torrentIndexScraper'),
+
+    TORRENT_CLIENT: path.join(__dirname, 'torrentClient', 'torrentClient'),
+    CREATE_TORRENT: path.join(__dirname, 'torrentClient', 'create', 'createTorrent'),
+    LEECH_TORRENT: path.join(__dirname, 'torrentClient', 'download', 'download'),
+    SEED_TORRENT: path.join(__dirname, 'torrentClient', 'seed', 'seed'),
+    TRACKER_CLIENT: path.join(__dirname, 'torrentClient', 'tracker', 'trackerClient'),
+    UDP_TRACKER_CLIENT: path.join(__dirname, 'torrentClient', 'tracker', 'udpTracker'),
+    HTTP_TRACKER_CLIENT: path.join(__dirname, 'torrentClient', 'tracker', 'httpTracker'),
+
+    MESSAGE: path.join(__dirname, 'torrentClient', 'util', 'message'),
+    PIECES: path.join(__dirname, 'torrentClient', 'util', 'Pieces'),
+    QUEUE: path.join(__dirname, 'torrentClient', 'util', 'Queue'),
+    TORRENT_PARSER: path.join(__dirname, 'torrentClient', 'util', 'torrentParser'),
+    UTIL: path.join(__dirname, 'torrentClient', 'util', 'util'),
+
+    // UI
+    INDEX_SCREEN: path.join(__dirname, '..', 'ui', 'index', 'index.html'),
+    REGISTER_SCREEN: path.join(__dirname, '..', 'ui', 'register', 'register.html'),
+    LOADER_SCREEN: path.join(__dirname, '..', 'ui', 'loader', 'loader.html'),
+    DIRECTORY_SCREEN: path.join(__dirname, '..', 'ui', 'listDirectory', 'listDirectory.html'),
+    UPLOAD_POPUP: path.join(__dirname, '..', 'ui', 'uploadLogin', 'uploadLogin.html'),
+    DOWNLOAD_POPUP: path.join(__dirname, '..', 'ui', 'downloadLogin', 'downloadLogin.html'),
+    UI_PRELOAD: path.join(__dirname, '..', 'ui','preload.js'),
 
 });

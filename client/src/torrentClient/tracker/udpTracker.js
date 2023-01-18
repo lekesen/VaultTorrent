@@ -5,10 +5,11 @@ const dgram = require('dgram'); // for UDP communications
 const Buffer = require('buffer').Buffer;
 const urlParse = require('url').parse;
 const crypto = require('crypto'); // To generate random numbers
+const path = require('path');
 
-const tp = require('../util/torrentParser');
-const util = require('../util/util');
-const consts = require('../../constants');
+const consts = require(path.join(__dirname, '..', '..', 'constants'));
+const tp = require(consts.TORRENT_PARSER);
+const util = require(consts.UTIL);
 
 /*
 UDP Tracker protocol:

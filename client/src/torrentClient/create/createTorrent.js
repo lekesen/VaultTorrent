@@ -3,14 +3,16 @@
 // Load necessary modules
 const createTorrent = require('create-torrent');
 const fs = require('fs');
-const path = require('node:path');
+const path = require('path');
 
-const tp = require('../util/torrentParser');
+const consts = require(path.join(__dirname, '..', '..', 'constants'));
+const tp = require(consts.TORRENT_PARSER);
 
 // Create Torrent from file
 module.exports = (filePath, outputPath, cb) => {
+    console.log(consts.TRACKER_PORT);
     const opts = {
-        announceList: ['udp://10.0.2.8:8080']
+        announceList: ['udp://'+consts.TRACKER_IP+':'+ consts.TRACKER_PORT]
     };
     createTorrent(filePath, opts, (err, torrent) => {
         if (!err) {
