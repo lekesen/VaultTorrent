@@ -1,6 +1,8 @@
 'use strict';
 
 // Load necessary modules
+const Buffer = require('buffer').Buffer;
+const crypto = require('crypto');
 const path = require('path');
 
 const consts = require(path.join(__dirname, '..', '..', 'constants'));
@@ -10,9 +12,8 @@ const tp = require(consts.TORRENT_PARSER);
 module.exports = class {
     constructor(torrent) {
         function buildPiecesArray() {
-            // torrent.info.pieces gives a 20-bit-sha for each piece
+            // torrent.info.pieces gives a 20-byte-sha1 for each piece
             const nPieces = torrent.info.pieces.length / 20;
-            console.log(nPieces);
             // Array of arrays --> pieces and blocks
             const arr = new Array(nPieces).fill(null);
 
@@ -21,6 +22,7 @@ module.exports = class {
         // Store requested and received pieces
         this._requested = buildPiecesArray();
         this._received = buildPiecesArray();
+        this._receivedData = new Array(torrent.info.pieces.length / 20).fill(null);
     }
     
     // Mark Piece as requested
@@ -30,16 +32,47 @@ module.exports = class {
     }
     
     // Mark piece as received. 
-    addReceived(pieceBlock) {
+    addReceived(pieceBlock, torrent) {
+        // TODO: add to data in order (blocks may arrive out of order)
         const blockIndex = pieceBlock.begin / tp.BLOCK_LEN;
         this._received[pieceBlock.index][blockIndex] = true;
+        if (!this._receivedData[pieceBlock.index]) {
+            // First received block of piece 
+            this._receivedData[pieceBlock.index] = Buffer.alloc(tp.BlocksPerPiece(torrent, pieceBlock.index));
+            const offset = pieceResp.begin;
+            const data = pieceResp.block;
+            const length = pieceResp.block.length;
+            this._receivedData[pieceBlock.index].write(pieceResp.block, pieceResp.begin, pieceResp.length);
+        } else {
+            this._receivedData[pieceBlock.index] = Buffer.concat(this._receivedData[pieceBlock.index], pieceBlock.block);
+        }
     }
 
     isPieceDone(pieceIndex) {
-        return this._received[pieceIndex].every(blocks => blocks.every(i => i));
+        this._received[pieceIndex].every(block => {
+            if(!block) {
+                return false;
+            }
+        });
+        return true;
     }
 
+    checkPieceIntegrity(pieceIndex, torrent) {
+        const downloadedHash = Buffer.from(crypto.createHash('sha1').update(this._receivedData[pieceIndex]).digest('hex'), 'hex');
+        const expectedHash = torrent.info.pieces.slice(pieceIndex*20, (pieceIndex+1)*20);
+        
+        return Buffer.compare(downloadedHash, expectedHash) == 0;
+    }
+
+    getPiece(pieceIndex) {
+        return this._receivedData[pieceIndex];
+    }
     
+    removePiece(pieceIndex) {
+        this._requested[pieceIndex] = new Array(tp.blocksPerPiece(torrent, pieceIndex)).fill(false);
+        this._received[pieceIndex] = new Array(tp.blocksPerPiece(torrent, pieceIndex)).fill(false);
+        this._receivedData[pieceIndex] = null;
+    }
     
     // Tell if piece is needed or it has already been requested/ received
     needed(pieceBlock) {

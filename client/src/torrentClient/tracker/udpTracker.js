@@ -175,7 +175,7 @@ function parseConnResp(resp, originalTransactionId) {
 
 
 // Build Announce Request message
-function buildAnnounceReq(connId, torrent, seeding, port=consts.PORT) {
+function buildAnnounceReq(connId, torrent, seeding, port=consts.CLIENT_PORT) {
 /*
     Offset  Size    Name    Value
     0       64-bit integer  connection_id

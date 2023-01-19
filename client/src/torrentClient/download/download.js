@@ -156,32 +156,34 @@ function pieceHandler(socket, pieces, queue, torrent, file, pieceResp, cb) {
 
 	
 	if (!pieces.isDone()) {
-		pieces.addReceived(pieceResp);
+		pieces.addReceived(pieceResp, torrent);
 
-		if(pieces.isPieceDone(pieceResp.index)) {
-			console.log(pieceResp.index + ' is done.');
-		}
-
-		// Write to download file
-		const offset = pieceResp.index * torrent.info['piece length'] + pieceResp.begin;
-
-		fs.writeSync(file, pieceResp.block, 0, pieceResp.block.length, offset, (err) => {
-			if (err) {
-				console.log(err);
+		if (pieces.isPieceDone(pieceResp.index)) {
+			// If download of a piece has finished, check for it's integrity
+			if (pieces.checkPieceIntegrity(pieceResp.index, torrent)) {
+				// If piece is OK, write to file.
+				const offset = pieceResp.index * torrent.info['piece length'];
+				const piece = pieces.getPiece(pieceResp.index);
+				fs.writeSync(file, piece, 0, piece.length, offset, (err) => {
+					if (err) {
+						console.log(err);
+					}
+				});
+				if (pieces.isDone()) {
+					// If download has finished, close the socket and file
+					socket.end();
+					try { fs.closeSync(file); cb();} catch(e) {console.log(e);}
+				} else {
+					// If more pieces to be downloaded, request more
+					requestPiece(socket, pieces, queue);
+				}
+			} else {
+				// Error with piece integrity. --> Retry download
+				pieces.removePiece(pieceResp.index);
 			}
-		});
-
-		if (pieces.isDone()) {
-			// If download has finished, close the socket and file
-			socket.end();
-			try { fs.closeSync(file); cb();} catch(e) {console.log(e);}
-		} else {
-			// If more pieces to be downloaded, request more
-			requestPiece(socket,pieces, queue);
 		}
-
 	} else {
-		// Close other sockets
+		// Close socket if download has finished
 		socket.end();
 	}
 

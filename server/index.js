@@ -4,5 +4,5 @@
 const tracker = require('./src/trackerServer');
 const webIndexer = require('./src/webIndexServer');
 
-//tracker.startServer();
+tracker.startServer();
 webIndexer.startServer();
