@@ -1,6 +1,4 @@
 'use strict';
-// https://javascript.plainenglish.io/how-to-implement-a-file-upload-server-with-node-js-83043bc180fc
-
 // Load necessary modules
 const path = require('path');
 const fs = require('fs');
@@ -11,7 +9,6 @@ const bodyParser = require('body-parser');
 module.exports.startServer = () => {
   const app = express();
   const port = 4000;
-  //app.use(bodyParser.json());
   if (process.env.NODE_ENV === 'production') {
     app.use(compression({}));
   }

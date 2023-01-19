@@ -46,8 +46,6 @@ module.exports.startServer = () => {
     });
 
     server.on('listening', function () {
-        // fired when all requested servers are listening
-        
         // UDP
         const udpAddr = server.udp.address();
         const udpHost = udpAddr.address;
@@ -55,36 +53,14 @@ module.exports.startServer = () => {
         console.log(udpHost);
         console.log(udpPort);
         console.log(`UDP tracker: udp://${udpHost}:${udpPort}`);
-        
-
-        /*
-
-        // HTTP
-        const httpAddr = server.http.address()
-        const httpHost = httpAddr.address !== '::' ? httpAddr.address : 'localhost'
-        const httpPort = httpAddr.port
-        console.log(`HTTP tracker: http://${httpHost}:${httpPort}/announce`)
-      
-        
-      
-        // WS
-        const wsAddr = server.ws.address()
-        const wsHost = wsAddr.address !== '::' ? wsAddr.address : 'localhost'
-        const wsPort = wsAddr.port
-        console.log(`WebSocket tracker: ws://${wsHost}:${wsPort}`)
-        */
     });
 
-    // Start tracker at designated port address
     const port = 8080;
-    //const hostname = 'localhost';//'10.0.2.8';
-    const host = 'localhost';
+    const host = '10.0.2.8';
 
     server.listen(port, host, () => {
         // Do something on listening...
     });
-    
-    // listen for individual tracker messages from peers:
     
     server.on('start', function (addr) {
       console.log('got start message from ' + addr);
@@ -93,17 +69,4 @@ module.exports.startServer = () => {
     server.on('complete', function (addr) {});
     server.on('update', function (addr) {});
     server.on('stop', function (addr) {});
-    /*
-    // get info hashes for all torrents in the tracker server
-    Object.keys(server.torrents)
-    
-    // get the number of seeders for a particular torrent
-    server.torrents[infoHash].complete
-    
-    // get the number of leechers for a particular torrent
-    server.torrents[infoHash].incomplete
-    
-    // get the peers who are in a particular torrent swarm
-    server.torrents[infoHash].peers
-    */
 };
