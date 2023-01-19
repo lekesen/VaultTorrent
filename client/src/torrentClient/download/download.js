@@ -159,6 +159,7 @@ function pieceHandler(socket, pieces, queue, torrent, file, pieceResp, cb) {
 		pieces.addReceived(pieceResp, torrent);
 
 		if (pieces.isPieceDone(pieceResp.index)) {
+			
 			// If download of a piece has finished, check for it's integrity
 			if (pieces.checkPieceIntegrity(pieceResp.index, torrent)) {
 				// If piece is OK, write to file.
@@ -179,21 +180,22 @@ function pieceHandler(socket, pieces, queue, torrent, file, pieceResp, cb) {
 				}
 			} else {
 				// Error with piece integrity. --> Retry download
-				pieces.removePiece(pieceResp.index);
+				console.log('Error with piece integrity! Try download again.');
+				//TODO: Retry download. How to recover elements from queue?
 			}
 		}
 	} else {
 		// Close socket if download has finished
+		console.log('finished');
 		socket.end();
 	}
-
-
 	
 }
 
 
 // Request a piece
 function requestPiece(socket, pieces, queue) {
+	console.log('Requesting piece!');
 	// If choked, cannot request pieces
 	if (queue.choked) return null;
 	

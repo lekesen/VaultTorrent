@@ -38,14 +38,9 @@ module.exports = class {
         this._received[pieceBlock.index][blockIndex] = true;
         if (!this._receivedData[pieceBlock.index]) {
             // First received block of piece 
-            this._receivedData[pieceBlock.index] = Buffer.alloc(tp.BlocksPerPiece(torrent, pieceBlock.index));
-            const offset = pieceResp.begin;
-            const data = pieceResp.block;
-            const length = pieceResp.block.length;
-            this._receivedData[pieceBlock.index].write(pieceResp.block, pieceResp.begin, pieceResp.length);
-        } else {
-            this._receivedData[pieceBlock.index] = Buffer.concat(this._receivedData[pieceBlock.index], pieceBlock.block);
+            this._receivedData[pieceBlock.index] = Buffer.alloc(tp.pieceLen(torrent, pieceBlock.index));
         }
+        this._receivedData[pieceBlock.index].fill(pieceBlock.block, pieceBlock.begin);
     }
 
     isPieceDone(pieceIndex) {
@@ -66,12 +61,6 @@ module.exports = class {
 
     getPiece(pieceIndex) {
         return this._receivedData[pieceIndex];
-    }
-    
-    removePiece(pieceIndex) {
-        this._requested[pieceIndex] = new Array(tp.blocksPerPiece(torrent, pieceIndex)).fill(false);
-        this._received[pieceIndex] = new Array(tp.blocksPerPiece(torrent, pieceIndex)).fill(false);
-        this._receivedData[pieceIndex] = null;
     }
     
     // Tell if piece is needed or it has already been requested/ received

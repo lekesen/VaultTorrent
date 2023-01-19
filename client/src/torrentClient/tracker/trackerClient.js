@@ -93,8 +93,7 @@ function notifySeeding(trackerUrl, torrent) {
             function scheduledNotify() {
                 notifySeeding(trackerUrl, torrent);
             }
-            const timeoutObj = setTimeout(scheduledNotify, trackerInfo.interval);
-
+            const timeoutObj = setTimeout(scheduledNotify, trackerInfo.interval*1000);
             programmedNotifySeed[trackerUrl] =  timeoutObj;
         };
         
