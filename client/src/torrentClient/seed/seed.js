@@ -80,8 +80,24 @@ function onWholeMsg(socket, callback) {
 // Message handler functions
 function msgHandler(msg, socket, torrent, filePath) {
 	if (isHandshake(msg)) {
-		// If it is hanshake, show we are interested
+		// If it is hanshake, send handshake and bitfield
 		socket.write(message.buildHandshake(torrent));
+		const nPieces = torrent.info.pieces.length / 20;
+		
+		var bitfieldArray = new Array(Math.ceil(nPieces/8)).fill(0);
+		for (var i=0; i<nPieces; i++){
+			const byteIndex = Math.trunc(i / 8);
+			const offset = i%8;
+			
+			bitfieldArray[byteIndex] = bitfieldArray[byteIndex] | (1<<(7-offset));
+		}
+		var bitfield = Buffer.alloc(bitfieldArray.length);
+		for (var i=0; i< bitfieldArray.length; i++) {
+			bitfield.writeUint8(bitfieldArray[i], i);
+		}
+		console.log(bitfieldArray);
+		console.log(bitfield);
+		socket.write(message.buildBitfield(bitfield));
 	} else {
 		const m = message.parse(msg);
 		// Depending on message ID, send to a specific handler
@@ -102,10 +118,7 @@ function isHandshake(msg) {
 function interestedHandler(socket, torrent) {
 	//Some clients (Deluge for example) send bitfield with missing pieces even if it has all data. Then it sends rest of pieces as have messages. They are saying this helps against ISP filtering of BitTorrent protocol. It is called lazy bitfield.
 	// Send have packets
-    const nPieces = torrent.info.pieces.length / 20;
-	for (var i=0; i<nPieces; i++){
-		socket.write(message.buildHave(i));
-	}
+    
     // Unchoke
 	socket.write(message.buildUnchoke());
 }
