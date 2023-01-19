@@ -53,7 +53,7 @@ module.exports.buildHandshake = torrent => {
 // Keep Alive message
 module.exports.buildKeepAlive = () => Buffer.alloc(4);
 
-// Choke message. Seeder --> peer
+// Choke message
 module.exports.buildChoke = () => {
     const buf = Buffer.alloc(5);
     

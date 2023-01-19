@@ -1,6 +1,7 @@
 'use strict';
 
 const path = require('path');
+const Buffer = require('buffer').Buffer;
 
 module.exports = Object.freeze({
     // Client network config
@@ -15,7 +16,14 @@ module.exports = Object.freeze({
 
     // Tracker config
     TRACKER_IP: 'localhost',
-    TRACKER_PORT: 8000,
+    TRACKER_PORT: 8080,
+
+    // Encryption config
+    ENC_ALG: 'aes-256-cbc',
+    ENC_IV: Buffer.from('14189dc35ae35e75ff31d7502e245cd9', 'hex'),
+    MASTER_KDF_SALT: Buffer.from('91c51b47bc8cb82010308fe58985243f', 'hex'),
+    ENC_KDF_SALT: Buffer.from('118a3e96c559b5603ff751ab55127f5b', 'hex'),
+    AUTH_KDF_SALT: Buffer.from('7bc8cbc35ae3547bc8cb5603ffff7ff7', 'hex'),
     
     // File directories
     VAULT_DIRECTORY: path.join(__dirname, '..', 'files', 'vault'),

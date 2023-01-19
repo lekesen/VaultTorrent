@@ -2,35 +2,38 @@
 
 // Load necessary modules
 const crypto = require('crypto');
-const buffer = require('buffer').Buffer;
+const path = require('path');
+const Buffer = require('buffer').Buffer;
 
-// TODO: create random salt and store safely    
-const masterKeySalt = Buffer.from('91c51b47bc8cb82010308fe58985243f', 'hex');
-const sessionKeySalt = Buffer.from('118a3e96c559b5603ff751ab55127f5b', 'hex');
+const consts = require(path.join(__dirname, 'constants'));
 
 // Get master key from email and password
 module.exports.getMasterKey = (email, password, cb) => {
-    // TODO: use better hash
-    const hash = crypto.createHash('md5').update(email+password).digest('hex');
+    // Hash email and password
+    const email_hash = crypto.createHash('sha256').update(email).digest();
+    const password_hash = crypto.createHash('sha256').update(password).digest();
 
-    // Generate key from kdf
-    getKey(hash, masterKeySalt, cb);
+    // Generate key from kdf, concatenating both hashes
+    getKey(Buffer.concat([email_hash, password_hash]), consts.MASTER_KDF_SALT, 64, cb);
 };
 
 // Derive session keys from master key
 module.exports.getSessionKeys = (masterKey, cb) => {
-    getKey(masterKey, sessionKeySalt, (derivedKey) => {
-        const sessionKeys = {
-            authKey: derivedKey.slice(0, 32),
-            encKey: derivedKey.slice(32)
-        }
-        cb(sessionKeys);
+    getKey(masterKey, consts.AUTH_KDF_SALT, 32, (authenticationKey) => {
+        getKey(masterKey, consts.ENC_KDF_SALT, 32, (encryptionKey) => {
+            const sessionKeys = {
+                authKey: authenticationKey,
+                encKey: encryptionKey
+            }
+            cb(sessionKeys);
+        });
     });
 };
 
-function getKey(password, salt, cb) {
+// FUnction to generate key using scrypt
+function getKey(password, salt, length, cb) {
     // N is the cost
-    crypto.scrypt(password, salt, 64, { N: 2**14 }, (err, derivedKey) => { 
+    crypto.scrypt(password, salt, length, { N: 2**14 }, (err, derivedKey) => { 
         if (err) {
             console.log(err);
         } else {

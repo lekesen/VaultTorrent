@@ -22,6 +22,7 @@ module.exports = class {
         // Store requested and received pieces
         this._requested = buildPiecesArray();
         this._received = buildPiecesArray();
+        // Array to store data being received
         this._receivedData = new Array(torrent.info.pieces.length / 20).fill(null);
     }
     
@@ -42,7 +43,8 @@ module.exports = class {
         }
         this._receivedData[pieceBlock.index].fill(pieceBlock.block, pieceBlock.begin);
     }
-
+    
+    // Check if download of a piece has ended
     isPieceDone(pieceIndex) {
         this._received[pieceIndex].every(block => {
             if(!block) {
@@ -52,6 +54,7 @@ module.exports = class {
         return true;
     }
 
+    // Check piece integrity by comparing it to the hash of torrent.info.pieces
     checkPieceIntegrity(pieceIndex, torrent) {
         const downloadedHash = Buffer.from(crypto.createHash('sha1').update(this._receivedData[pieceIndex]).digest('hex'), 'hex');
         const expectedHash = torrent.info.pieces.slice(pieceIndex*20, (pieceIndex+1)*20);
@@ -59,6 +62,7 @@ module.exports = class {
         return Buffer.compare(downloadedHash, expectedHash) == 0;
     }
 
+    // Get piece data
     getPiece(pieceIndex) {
         return this._receivedData[pieceIndex];
     }

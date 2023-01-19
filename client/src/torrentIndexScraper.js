@@ -10,7 +10,7 @@ const path = require('path');
 
 const consts = require(path.join(__dirname, 'constants'));
 
-
+// Upload torrent file to BitTorrent Index
 module.exports.uploadTorrent = (torrentPath, cb) => {
     // Get file to upload
     let formData = new FormData();
@@ -24,26 +24,26 @@ module.exports.uploadTorrent = (torrentPath, cb) => {
         }
     })
     .then((res) => {
-        console.log('Uploaded file succesfully.');
         cb();
     }).catch((err) => {
         console.error(err);
     });
 };
 
+// Download file from BitTorrent index
 module.exports.downloadTorrent = (torrentPath, cb) => {
     downloadFile(torrentPath, cb);
 };
 
 async function downloadFile(filePath, cb) {
-	const writeStream = fs.createWriteStream(filePath);
-
+	// Prepare request
     const form = {
 		downloadFile: path.basename(filePath)
 	};
-
 	const response = await axios.post('http://'+consts.INDEX_IP+':'+consts.INDEX_PORT+consts.INDEX_DOWNLOAD_PATH, qs.stringify(form), {responseType: 'stream'});
-
+    
+    // Write response to disk
+    const writeStream = fs.createWriteStream(filePath);
 	response.data.pipe(writeStream);   
 
     writeStream.on('close', () => { cb() });

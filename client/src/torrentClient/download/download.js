@@ -26,7 +26,6 @@ module.exports = (torrent, downloadPath, cb) => {
 
     // Get peer list and start download
     tracker.getPeers(torrent, peers => {
-		console.log(peers);
 		peers.forEach(peer => { download(peer, torrent, pieces, file, cb); });
 	});
 };
@@ -151,9 +150,7 @@ function bitfieldHandler(socket, pieces, queue, payload) {
 // If we receive a piece
 function pieceHandler(socket, pieces, queue, torrent, file, pieceResp, cb) {
 	// Show download progress
-    // TODO: implement with UI
 	pieces.printPercentDone();
-
 	
 	if (!pieces.isDone()) {
 		pieces.addReceived(pieceResp, torrent);
@@ -179,14 +176,13 @@ function pieceHandler(socket, pieces, queue, torrent, file, pieceResp, cb) {
 					requestPiece(socket, pieces, queue);
 				}
 			} else {
-				// Error with piece integrity. --> Retry download
+				// Error with piece integrity.
 				console.log('Error with piece integrity! Try download again.');
 				//TODO: Retry download. How to recover elements from queue?
 			}
 		}
 	} else {
 		// Close socket if download has finished
-		console.log('finished');
 		socket.end();
 	}
 	
@@ -195,7 +191,6 @@ function pieceHandler(socket, pieces, queue, torrent, file, pieceResp, cb) {
 
 // Request a piece
 function requestPiece(socket, pieces, queue) {
-	console.log('Requesting piece!');
 	// If choked, cannot request pieces
 	if (queue.choked) return null;
 	

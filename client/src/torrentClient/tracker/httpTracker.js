@@ -11,15 +11,10 @@ const consts = require(path.join(__dirname, '..', '..', 'constants'));
 const tp = require(consts.TORRENT_PARSER);
 const util = require(consts.UTIL);
 
-/*
-HTTP Tracker protocol:
-	1) Send announce request w/ HTTP.
-	4) Get announce response and extract peer list.
-*/
 
 // Get peers from tracker
 module.exports.getPeers = (trackerUrl, torrent, cb) => {
-    getTrackerInfo(trackerUrl, torrent, (trackerInfo) => {
+    getTrackerInfo(trackerUrl, torrent, false, (trackerInfo) => {
         if (trackerInfo) {
             cb(trackerInfo.peers);
         }
@@ -28,24 +23,39 @@ module.exports.getPeers = (trackerUrl, torrent, cb) => {
 
 // Notify tracker we are seeding
 module.exports.notifySeeding = (trackerUrl, torrent, cb) => {
-    getTrackerInfo(trackerUrl, torrent, seeding = true, (trackerInfo) => {
+    getTrackerInfo(trackerUrl, torrent, true, (trackerInfo) => {
         cb(trackerInfo);
     });
 };
 
-function getTrackerInfo(trackerUrl, torrent, seeding = false, cb) {
+
+function getTrackerInfo(trackerUrl, torrent, seeding, cb) {
     const url = urlParse(trackerUrl);
 
-    const parameters = {
-		info_hash: escape(torrentParser.infoHash(torrent).toString('binary')),
-		peer_id: escape(util.genId().toString('binary')),
-		port: consts.PORT,
-		uploaded: 0,
-		downloaded: seeding,
-		left: BigInt('0x' + torrentParser.size(torrent).toString('hex')),
-		event: 'started'
+	let parameters;
+	if (!seeding) {
+		parameters = {
+			info_hash: escape(torrentParser.infoHash(torrent).toString('binary')),
+			peer_id: escape(util.genId().toString('binary')),
+			port: consts.CLIENT_PORT,
+			uploaded: 0,
+			downloaded: 0,
+			left: BigInt('0x' + torrentParser.size(torrent).toString('hex')),
+			event: 'started'
+		}
+	} else {
+		parameters = {
+			info_hash: escape(torrentParser.infoHash(torrent).toString('binary')),
+			peer_id: escape(util.genId().toString('binary')),
+			port: consts.CLIENT_PORT,
+			uploaded: 0,
+			downloaded: 0,
+			left: 0,
+			event: 'completed'
+		}
+	
 	}
-
+    
     const options = {
 		host: url.hostname,
 		port: url.port ? url.port : 80,
@@ -80,7 +90,7 @@ function buildPathFromParams(pathname, parameters) {
 		const parsedKey = key;
 		var parsedValue = value;
 		if (! first) {
-			path += '&'
+			path += '&';
 			
 		}
 		path += parsedKey + '=' + parsedValue;
@@ -101,9 +111,6 @@ function parseResponse(data, cb) {
 	if (parsedData.warning_message) {
 		console.log(data.warning_message);
 	}
-
-	// TODO: get interval and report periodically
-	// TODO: get tracker_id for future reports
 
 	const peers = parsedData.peers;
 	var peerList = [];
