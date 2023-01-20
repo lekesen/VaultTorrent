@@ -159,7 +159,8 @@ function uploadVault(email, password, cb) {
 
 // Function to close vault (erase unprotected files)
 function closeVault(cb) {
-	// TODO: stop seeding
+	// Stop seeding
+	torrentClient.stopSeeding(()=> {});
 
 	// Remove vault directory and compressed directory
 	console.log('Closing vault...');

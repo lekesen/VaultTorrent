@@ -12,7 +12,8 @@ const message = require(consts.MESSAGE);
 const tp = require(consts.TORRENT_PARSER);
 
 // Variables to store server
-let server;
+var server;
+var sockets = [];
 
 // Start seeding
 module.exports.startSeeding = (torrent, filePath) => {
@@ -28,17 +29,23 @@ module.exports.startSeeding = (torrent, filePath) => {
 	// Set up listeners
 	server.on('error', (err) => console.log(err));
 	server.on('connection', socket => {
+		sockets.push(socket);
 		onWholeMsg(socket, msg => msgHandler(msg, socket, torrent, filePath));
 		socket.on('error', (err) => console.log(err));
 	});
 };
 
 // Stop seeding function
-module.exports.stopSeeding = (torrent) => {
-    tracker.stopSeeding(torrent);
+module.exports.stopSeeding = () => {
+    tracker.stopSeeding();
 	if (server) {
-		server.unref();
+		sockets.forEach((socket) => {
+			socket.destroy();
+		});
+		sockets = [];
+		server.close();
 	}
+	
 };
 
 // Incomming message handler
