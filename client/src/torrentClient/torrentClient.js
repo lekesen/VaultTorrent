@@ -19,16 +19,13 @@ module.exports.createTorrent = (filePath, outputPath, cb) => {
 module.exports.downloadTorrent = (torrentPath, filePath, cb) => {
     const torrent = tp.open(torrentPath);
     if (!torrent) { return; }
-    console.log(tp.infoHash(torrent));
     download(torrent, filePath, cb);
 };
 
 // Start seeding
 module.exports.startSeeding = (torrentPath, filePath) => {
     const torrent = tp.open(torrentPath);
-    
     if (!torrent) { return; }
-    console.log(tp.infoHash(torrent));
     seeder.startSeeding(torrent, filePath);
 };
 

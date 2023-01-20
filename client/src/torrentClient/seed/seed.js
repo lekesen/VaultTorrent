@@ -116,7 +116,7 @@ function isHandshake(msg) {
 
 function checkHandshake(handshake, torrent) {
 	const handshakeInfoHash = handshake.slice(28, 48);
-	return Buffer.compare(tp.infoHash(torrent), handshakeInfoHash) == 0;
+	return Buffer.compare(tp.infoHash(torrent), handshakeInfoHash);
 }
 
 function interestedHandler(socket) {    
