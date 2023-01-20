@@ -64,12 +64,12 @@ module.exports.register = (email, password, cb) => {
 
 // Upload Vault
 module.exports.upload = (email, password, cb) => {
-	uploadVault(email, password, cb());
+	uploadVault(email, password, cb);
 };
 
 // Download Vault
 module.exports.download = (email, password, cb) => {
-	downloadVault(email, password, cb());
+	downloadVault(email, password, cb);
 };
 
 // Close Vault
