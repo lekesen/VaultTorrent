@@ -37,10 +37,7 @@ module.exports.startSeeding = (torrent, filePath) => {
 module.exports.stopSeeding = (torrent) => {
     tracker.stopSeeding(torrent);
 	if (server) {
-		server.close(function () {
-			console.log('server closed.');
-			server.unref();
-		});
+		server.unref();
 	}
 };
 
