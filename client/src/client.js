@@ -20,6 +20,9 @@ module.exports.login = (email, password, cb) => {
 		console.log('Retrieving session keys...');
 		getKeys(email, password, (sessionKeys) => {
 			// If vault exists --> decrypt vault and start seeding
+			if (!fs.existsSync(consts.VAULT_DIRECTORY)) {
+				fs.mkdirSync(consts.VAULT_DIRECTORY);
+			}
 			console.log('Decrypting vault...');
 			cipher.decrypt(consts.VAULT_DIRECTORY, consts.COMPRESSED_VAULT_DIRECTORY, consts.ENCRYPTED_VAULT_DIRECTORY,sessionKeys.encKey, () => { cb(console.log('Vault decrypted!')); });
 			console.log('Seeding...');
