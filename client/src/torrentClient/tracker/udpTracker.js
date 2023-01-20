@@ -46,7 +46,7 @@ function getTrackerInfo(trackerUrl, torrent, seeding, cb) {
     const udpCb = (err) => {
         if (err) {
             console.log(err);
-            socket.close();
+            socket.end();
         }
     };
 
@@ -67,7 +67,7 @@ function getTrackerInfo(trackerUrl, torrent, seeding, cb) {
 
             // Check for error
             if (!connResp) {
-                socket.close();
+                socket.end();
                 return;
             }
 
@@ -89,7 +89,7 @@ function getTrackerInfo(trackerUrl, torrent, seeding, cb) {
 
             // Check for error
             if (!announceResp) {
-                socket.close();
+                socket.end();
                 return;
             }
 
@@ -97,7 +97,7 @@ function getTrackerInfo(trackerUrl, torrent, seeding, cb) {
 
             // 5. Pass announce response to callback
             cb(announceResp);
-            socket.close();
+            socket.end();
             return;
         }
     });

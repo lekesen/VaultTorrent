@@ -74,7 +74,7 @@ function msgHandler(msg, socket, torrent, filePath) {
 		// If it is handshake, check info_hash
 		if(!checkHandshake(msg, torrent)){
 			console.log('Wrong info_hash! Closing socket.');
-			socket.close();
+			socket.end();
 			return;
 		}
 
